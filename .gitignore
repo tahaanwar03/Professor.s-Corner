@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.bak
+
+# Local env (if you add tooling later)
+.env
+.env.*
+!.env.example
+
+# Optional heavy / personal (uncomment if needed)
+# PnL Card/

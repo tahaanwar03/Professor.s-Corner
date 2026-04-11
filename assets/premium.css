@@ -1,0 +1,636 @@
+/* Prof's Corner — Premium dashboard layer (ambient, drift, overlay) */
+
+/* ─── Ambient background ─── */
+.ambient-root {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ambient-mesh {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse 80% 60% at calc(50% + var(--ambient-x, 0) * 8%) calc(40% + var(--ambient-y, 0) * 6%),
+      rgba(0, 241, 254, 0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at calc(30% - var(--ambient-x, 0) * 5%) calc(70% + var(--ambient-y, 0) * 4%),
+      rgba(175, 255, 209, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 45% at calc(75% + var(--ambient-x, 0) * 4%) calc(25% - var(--ambient-y, 0) * 5%),
+      rgba(192, 132, 252, 0.05) 0%, transparent 45%),
+    linear-gradient(165deg, #060a0f 0%, #080f15 40%, #0a1218 100%);
+  background-size: 100% 100%;
+  /* Continuous mesh drift repaints a large layer every frame — disabled for smoother scrolling. */
+  animation: none;
+}
+
+/* SVG turbulence filter is GPU-heavy; keep layer very light. */
+.ambient-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.ambient-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-noise { opacity: 0.012; }
+}
+
+/* Main content reads above ambient */
+.main-wrap {
+  position: relative;
+  z-index: 0;
+}
+
+/* ─── Scroll: polished scrollbars (dashboard main) ─── */
+.dash-main {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(153, 247, 255, 0.25) rgba(18, 26, 34, 0.4);
+}
+
+.dash-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dash-main::-webkit-scrollbar-track {
+  background: rgba(18, 26, 34, 0.35);
+  border-radius: 4px;
+}
+
+.dash-main::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(153, 247, 255, 0.35), rgba(0, 226, 238, 0.2));
+  border-radius: 4px;
+}
+
+.day-panel-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(153, 247, 255, 0.22) rgba(18, 26, 34, 0.35);
+}
+
+.day-panel-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.day-panel-body::-webkit-scrollbar-thumb {
+  background: rgba(153, 247, 255, 0.25);
+  border-radius: 3px;
+}
+
+/* ─── Reveal (no blur — filter: blur() is very expensive during paint) ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transform: translateY(8px);
+    transition-duration: 0.2s;
+  }
+}
+
+/* Bento head micro-interaction */
+.bento-head {
+  transition: transform 0.2s ease;
+}
+
+.bento-card:hover .bento-head {
+  transform: translateY(-1px);
+}
+
+/* Win toggle shine */
+.win-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.win-btn.on::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(153, 247, 255, 0.15) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: winShine 3.5s ease-in-out infinite;
+}
+
+@keyframes winShine {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .win-btn.on::after {
+    animation: none;
+  }
+}
+
+/* Chart visibility: no transform transition — scroll parallax sets transform every frame */
+.bento-body .bento-chart {
+  transition: opacity 0.2s ease;
+}
+
+/* ─── Profit calendar: collapsible block in dashboard .dash-right ─── */
+#dashboard .dash-right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#dashboard .dash-right #exec-log-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.cal-sidebar {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(66, 73, 80, 0.15);
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.cal-sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(66, 73, 80, 0.22);
+  background: rgba(18, 26, 34, 0.55);
+  color: var(--on-surface);
+  cursor: pointer;
+  font-family: var(--ff-head);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cal-sidebar-toggle:hover {
+  border-color: rgba(153, 247, 255, 0.28);
+  background: rgba(23, 33, 41, 0.75);
+}
+
+.cal-sidebar-toggle .icon:first-child {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.cal-sidebar-toggle-label {
+  flex: 1;
+  text-align: left;
+}
+
+.cal-sidebar-chevron {
+  margin-left: auto;
+  font-size: 20px !important;
+  color: var(--outline);
+}
+
+.cal-sidebar.collapsed .cal-sidebar-inner {
+  display: none;
+}
+
+.cal-sidebar-inner {
+  padding-top: 12px;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cal-sidebar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cal-sidebar .calmn {
+  min-width: 0;
+  flex: 1;
+  font-size: 9px;
+}
+
+.cal-sidebar .calg7.cal-compact {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+}
+
+.cal-sidebar .caldow {
+  font-size: 6px;
+  padding: 3px 0;
+  letter-spacing: 0.04em;
+}
+
+.cal-sidebar .calday {
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 2px 3px;
+  border-radius: 4px;
+}
+
+.cal-sidebar .calnum {
+  font-size: 7px;
+}
+
+.cal-sidebar .calpnl {
+  font-size: 8px;
+  margin-top: auto;
+  line-height: 1.1;
+}
+
+.cal-sidebar .calct {
+  font-size: 5px;
+  line-height: 1;
+}
+
+/* ─── Glassmorphism + clinical “terminal” depth (dashboard) ─── */
+#dashboard .stat-card {
+  background: rgba(18, 26, 34, 0.58);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(153, 247, 255, 0.1);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+#dashboard .stat-card-val,
+#dashboard .stat-card-sub {
+  font-variant-numeric: tabular-nums;
+}
+
+#dashboard .bento-card {
+  background: rgba(18, 26, 34, 0.52);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(153, 247, 255, 0.09);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#dashboard .bento-head {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom-color: rgba(153, 247, 255, 0.08);
+}
+
+/* Neon CTA + hero equity glow (HUD) */
+.sidebar-new-btn {
+  box-shadow:
+    0 6px 20px rgba(153, 247, 255, 0.2),
+    0 0 24px rgba(0, 241, 254, 0.12);
+  filter: drop-shadow(0 0 8px rgba(153, 247, 255, 0.25));
+}
+
+.sidebar-new-btn:hover {
+  box-shadow:
+    0 10px 28px rgba(153, 247, 255, 0.28),
+    0 0 32px rgba(0, 241, 254, 0.18);
+}
+
+/* Staggered stat / bento load (dashboard) */
+#dashboard.active .stat-grid .stat-card.anim {
+  animation-delay: calc(50ms + var(--stagger, 0) * 45ms);
+}
+
+#dashboard.active .stat-grid .stat-card:nth-child(1) { --stagger: 0; }
+#dashboard.active .stat-grid .stat-card:nth-child(2) { --stagger: 1; }
+#dashboard.active .stat-grid .stat-card:nth-child(3) { --stagger: 2; }
+#dashboard.active .stat-grid .stat-card:nth-child(4) { --stagger: 3; }
+
+#dashboard.active #bento-wrapper > .bento-card.anim {
+  animation-delay: calc(280ms + var(--bento-stagger, 0) * 55ms);
+}
+
+#dashboard.active #bento-wrapper > .bento-card:nth-child(1) { --bento-stagger: 0; }
+#dashboard.active #bento-wrapper > .bento-card:nth-child(2) { --bento-stagger: 1; }
+#dashboard.active #bento-wrapper > .bento-card:nth-child(3) { --bento-stagger: 2; }
+
+/* Net return shimmer on update */
+@keyframes statShimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.stat-card-val.stat-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(153, 247, 255, 0.22) 45%,
+    rgba(175, 255, 209, 0.35) 50%,
+    rgba(153, 247, 255, 0.22) 55%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: statShimmer 0.85s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card-val.stat-shimmer {
+    animation: none;
+    background: none;
+  }
+}
+
+/* Recent executions ↔ chart cross-highlight */
+#exec-log-list .exec-entry {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+ border-radius: 8px;
+  margin: 0 -6px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+#exec-log-list .exec-entry:hover {
+  background: rgba(153, 247, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(153, 247, 255, 0.12);
+}
+
+#exec-log-list .exec-entry.exec-linked-hover {
+  background: rgba(153, 247, 255, 0.1);
+  box-shadow:
+    inset 0 0 0 1px rgba(153, 247, 255, 0.22),
+    0 0 20px rgba(153, 247, 255, 0.08);
+}
+
+/* Streak drill-down panel */
+.streak-drill-panel {
+  margin: 0 16px 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(8, 15, 21, 0.65);
+  border: 1px solid rgba(153, 247, 255, 0.1);
+  font-size: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.streak-drill-panel .streak-drill-title {
+  font-family: var(--ff-head);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.streak-drill-panel .streak-drill-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(66, 73, 80, 0.15);
+  font-family: var(--ff-mono);
+}
+
+.streak-drill-panel .streak-drill-row:last-child {
+  border-bottom: none;
+}
+
+/* Focus mode: equity hero + live log only */
+#dashboard.focus-mode .page-header {
+  padding-bottom: 8px;
+}
+
+#dashboard.focus-mode .page-header .page-sub {
+  display: none;
+}
+
+#dashboard.focus-mode .stat-grid {
+  display: none;
+}
+
+#dashboard.focus-mode #bento-wrapper > .bento-card:not(:first-child) {
+  display: none;
+}
+
+#dashboard.focus-mode .cal-sidebar {
+  display: none !important;
+}
+
+#dashboard.focus-mode .dash-right .eval-heading,
+#dashboard.focus-mode .dash-right .eval-row {
+  display: none;
+}
+
+#dashboard.focus-mode .dash-right .exec-log-head {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+#dashboard.focus-mode #bento-wrapper {
+  margin-bottom: 12px;
+}
+
+#dashboard.focus-mode .dash-main::after {
+  content: "FOCUS MODE — Equity + Live log";
+  display: block;
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--outline);
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1100px) {
+  #dashboard.focus-mode .dash-right {
+    display: none;
+  }
+}
+
+/* ═══ Terminal pages — same glass / neon HUD as dashboard ═══ */
+#main-wrap #weekly .page-header,
+#main-wrap #trades .page-header,
+#main-wrap #add .page-header,
+#main-wrap #sharecard .page-header {
+  padding-left: 18px;
+  border-left: 3px solid rgba(153, 247, 255, 0.42);
+  margin-bottom: 28px;
+}
+
+#main-wrap #weekly .page-title,
+#main-wrap #trades .page-title,
+#main-wrap #add .page-title,
+#main-wrap #sharecard .page-title {
+  text-shadow: 0 0 42px rgba(153, 247, 255, 0.14);
+}
+
+#main-wrap #weekly .page-sub,
+#main-wrap #trades .page-sub,
+#main-wrap #add .page-sub,
+#main-wrap #sharecard .page-sub {
+  color: rgba(165, 172, 180, 0.92);
+  max-width: 56ch;
+}
+
+/* Log trade — form blocks */
+#add .form-section {
+  background: rgba(18, 26, 34, 0.52);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(153, 247, 255, 0.09);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#add .form-section-head {
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(153, 247, 255, 0.08);
+}
+
+#add .imgzone {
+  border-color: rgba(153, 247, 255, 0.14);
+  background: rgba(18, 26, 34, 0.35);
+}
+
+#add .imgzone:hover,
+#add .imgzone.drag {
+  border-color: rgba(153, 247, 255, 0.35);
+  background: rgba(153, 247, 255, 0.06);
+}
+
+/* Weekly plan editor */
+#weekly .weditor {
+  background: rgba(18, 26, 34, 0.58);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(153, 247, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* All trades — table shell */
+.section-card {
+  background: rgba(18, 26, 34, 0.52);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(153, 247, 255, 0.09);
+  border-radius: 12px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.section-card .fbar {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(153, 247, 255, 0.07);
+}
+
+.section-card .ttbl th {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(153, 247, 255, 0.06);
+}
+
+.section-card .ttbl .mrow:hover td {
+  background: rgba(153, 247, 255, 0.06);
+}
+
+.section-card .ttbl td {
+  border-bottom-color: rgba(66, 73, 80, 0.12);
+}
+
+.section-card .exp-inner {
+  background: rgba(10, 15, 20, 0.88);
+  border-top: 1px solid rgba(153, 247, 255, 0.07);
+}
+
+/* Weekly chips grid */
+#weekly .wchip {
+  background: rgba(18, 26, 34, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(153, 247, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+}
+
+#weekly .wchip:hover {
+  border-color: rgba(153, 247, 255, 0.28);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.32);
+}
+
+#weekly .wchip.sel {
+  border-color: rgba(153, 247, 255, 0.38);
+  background: rgba(153, 247, 255, 0.07);
+}
+
+/* Share card — control deck + preview */
+#sharecard .sc-wrap {
+  padding: 28px 28px 36px;
+  border-radius: 16px;
+  background: rgba(18, 26, 34, 0.48);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(153, 247, 255, 0.09);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#sharecard .sc-pbtn {
+  border-color: rgba(153, 247, 255, 0.18);
+  background: rgba(18, 26, 34, 0.4);
+}
+
+#sharecard .sc-pbtn:hover:not(.active) {
+  border-color: rgba(153, 247, 255, 0.32);
+  color: var(--primary);
+}
+
+#sharecard .ac-chip {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Manage models popover (Log Trade page) */
+#mgr-modal-bg .mgr-modal {
+  background: rgba(18, 26, 34, 0.94);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(153, 247, 255, 0.12);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #add .form-section,
+  #weekly .weditor,
+  .section-card,
+  #weekly .wchip,
+  #sharecard .sc-wrap,
+  #mgr-modal-bg .mgr-modal {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
