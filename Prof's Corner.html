@@ -1887,7 +1887,6 @@ async function loadBackdropForExport(relPath) {
     return null;
   }
 }
-const SEED_KEY = 'profsCorner_v1_seeded';
 const DEFAULT_MODELS = ['AMT','OB','FVG','CISD','CVA Reentry','Liquidity Sweep','BOS','MS Break','Reentry','Orderflow','Price Action'];
 
 /** Debug: ?debug=1 or localStorage profsCorner_debug = "1" */
@@ -4290,19 +4289,6 @@ function removeModel(name) {
   );
 }
 
-// ─── SEED DATA (run once on first launch) ─────
-function seedTradeData() {
-  if (localStorage.getItem(SEED_KEY)) return; // already seeded
-  if (trades.length > 0) return; // user already has data
-
-  const seedTrades = [{"id":"1772524800000","date":"2026-03-03","pair":"PHAUSDT","dir":"Long","bias":"Aligned","model":"Orderflow","outcome":"Win","sess":"Other","rr":5,"exec":"Good setup aligned with 1h one time-framing move. Executed on 5m. Continuation setup played upon breakout from first leg up, entry supported by A.VWAP, POC, fib 0.236-0.382. Second entry taken upon order flow depiction, high aggression of sellers at top with price not accepting below showing absorption. CVD without divs, consistently increasing open interest.","emo":"Entered with low size first with big stops. Interpreted data as bearish and closed setup on BE, entered again immediately. Followed my plan - let fear took over - came to senses and entered again - made profit - greed took over effectively roundtripping most of the gains.","imgs":[]},{"id":"1772524860000","date":"2026-03-05","pair":"ROBOUSDT","dir":"Long","bias":"Partial","model":"AMT","outcome":"Loss","sess":"Other","rr":1,"exec":"Range mean reversion back into the Value area with CVD absorption confirmation. SL placement got me stopped.","emo":"Fearful, entered first then exited then entered again. Went out letting the setup play out.","imgs":[]},{"id":"1772524920000","date":"2026-03-09","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Win","sess":"Other","rr":3.5,"exec":"A breakout move of 5.5R but had to close later due to trail stops. Fib levels working good for HTF trend while I entered in continuation of LTF.","emo":"Fearful with the entry, went in only 0.5% risk. Khair, up 1% today.","imgs":[]},{"id":"1772524980000","date":"2026-03-13","pair":"BTCUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Win","sess":"Other","rr":2.5,"exec":"Executed acceptance above VAH of HTF range for continuation setup from .382 fib. Trade did 5R but trail stopped at 2.5R","emo":"Vague SL placement had me risk half","imgs":[]},{"id":"1772525040000","date":"2026-03-13","pair":"TRUMPUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Win","sess":"Other","rr":7,"exec":"Executed continuation from .382 fib after grinding PA got overcome by aggressive buyers pushing price up. VWAP tap conf. Fib extensions as target for 7R","emo":"Cool head, risked properly, quick move into profits and that is what I like.","imgs":[]},{"id":"1772525100000","date":"2026-03-14","pair":"HUMAUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Loss","sess":"Other","rr":1,"exec":"Tried to enter continuation long mid leg up. Premature entry without confirmation.","emo":"—","imgs":[]},{"id":"1772525160000","date":"2026-03-20","pair":"UNKNOWN","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Loss","sess":"Other","rr":0.5,"exec":"Executed a range breakout for continuation setup even though price action was exhaustive. Entered without solid confirmation as that would have ruined the RR","emo":"Closed early as soon as accepted back in value at half a R","imgs":[]},{"id":"1772525220000","date":"2026-03-23","pair":"CETUSUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Breakeven","sess":"Other","rr":0,"exec":"Executed at range POC and VWAP val, closed breakeven due to low volatility, not the type of reaction I like.","emo":"Not much, went all in with 0.5% for stops so it was just waiting for an hour before closing BE.","imgs":[]},{"id":"1772525280000","date":"2026-03-25","pair":"TAOUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Breakeven","sess":"Other","rr":0,"exec":"Executed continuation setup after the breakout of range. Closed BE after price did not give an immediate aggressive move.","emo":"Setup TP triggered after. Broke my rule of waiting for setup invalidation to hit to close the trade, let fear override.","imgs":[]},{"id":"1772525340000","date":"2026-03-26","pair":"OGNUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Loss","sess":"Other","rr":2,"exec":"Golden fib and VWAP scalp","emo":"All-inned with soft SL, took hit of -3%. ROUNDTRIPPED whole months gain.","imgs":[]},{"id":"1772525400000","date":"2026-03-26","pair":"STOUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Win","sess":"Other","rr":4,"exec":"HTF continuation, LTF range break","emo":"Got in, got out BE, got in again higher with half the risk. Definitely got affected by the prev loss","imgs":[]},{"id":"1772525460000","date":"2026-03-27","pair":"CFGUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Loss","sess":"Other","rr":1,"exec":"PrPOC, VWAP val and golden fib key level entry.","emo":"Nothing crazy, went in with 2 entries. Stopped after consolidation, BTC dumped wild tho","imgs":[]},{"id":"1772525520000","date":"2026-03-29","pair":"SOLUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Loss","sess":"Other","rr":1,"exec":"Executed a swing reversal from VAL+OB and fib .5 extension. No vwap key levels present, rated the setup B+. Got wicked out due to news.","emo":"Nothing special, standard risk taken. Executed with confidence.","imgs":[]},{"id":"1772525580000","date":"2026-03-30","pair":"CHZUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Win","sess":"Other","rr":5,"exec":"Executed continuation trade from range breakout of .382 retrace bounce. Had to close at first TP","emo":"Went with half the risk because of Solana stoploss yesterday. A bit fearful.","imgs":[]},{"id":"1772525640000","date":"2026-03-31","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":3,"exec":"","emo":"","imgs":[]},{"id":"1772525700000","date":"2026-03-31","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":3,"exec":"","emo":"","imgs":[]},{"id":"1772525760000","date":"2026-03-31","pair":"ZBTUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Breakeven","sess":"Other","rr":1.5,"exec":"","emo":"","imgs":[]},{"id":"1772525820000","date":"2026-04-01","pair":"STOUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":4.5,"exec":"","emo":"","imgs":[]},{"id":"1772525880000","date":"2026-04-01","pair":"STOUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":10,"exec":"","emo":"","imgs":[]},{"id":"1772525940000","date":"2026-04-01","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":7,"exec":"","emo":"","imgs":[]}];
-
-  trades = seedTrades;
-  saveTrades();
-  localStorage.setItem(SEED_KEY, '1');
-  console.log('Seed data loaded:', trades.length, 'trades');
-}
-
 // ─── LIGHTBOX ─────────────────────────────────
 function openLB(src) {
   const lb = document.getElementById('lb'), img = document.getElementById('lb-img');
@@ -4358,7 +4344,7 @@ function initObserver() {
 
 /** Console helper: prints localStorage keys used by this app (values truncated). */
 window.ProfsCornerAudit = function () {
-  const keys = [TK, WK, MK, SEED_KEY, 'profsCorner_focus', 'profsCorner_calOpen', 'profsCorner_debug', 'profsCorner_perf', PNL_BG_KEY, PNL_BG_LEGACY_KEY];
+  const keys = [TK, WK, MK, 'profsCorner_focus', 'profsCorner_calOpen', 'profsCorner_debug', 'profsCorner_perf', PNL_BG_KEY, PNL_BG_LEGACY_KEY];
   const snap = {};
   keys.forEach(k => {
     try {
@@ -4394,7 +4380,6 @@ function init() {
   setupDropZone('we-drop',   'we');
   setupDropZone('edit-drop', 'edit');
   loadData();
-  seedTradeData(); // load CSV trades on first run
   pcDbg('Loaded', { trades: trades.length, weeks: weeks.length, models: models.length, tradeStorageKey: TK });
   renderModelManager();
   renderDashboard();
