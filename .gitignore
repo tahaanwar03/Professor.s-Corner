@@ -1,7 +1,0 @@
-# Prof's Corner Trading Journal - Ignore Data
-data.json
-media/
-journal/
-node_modules/
-.DS_Store
-*.log
