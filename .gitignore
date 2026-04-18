@@ -1,14 +1,7 @@
-# OS / editor
+# Prof's Corner Trading Journal - Ignore Data
+data.json
+media/
+journal/
+node_modules/
 .DS_Store
-Thumbs.db
-desktop.ini
-*.swp
-*.bak
-
-# Local env (if you add tooling later)
-.env
-.env.*
-!.env.example
-
-# Optional heavy / personal (uncomment if needed)
-# PnL Card/
+*.log

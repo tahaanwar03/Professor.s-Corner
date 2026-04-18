@@ -1,0 +1,6 @@
+@echo off
+echo Starting Sync Server...
+start "Prof's Corner Sync Server" /MIN cmd /c "node sync-server.js"
+
+echo Starting Web Server...
+powershell -ExecutionPolicy Bypass -File server.ps1

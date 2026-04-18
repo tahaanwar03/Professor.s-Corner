@@ -1,1850 +1,11 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prof's Corner — Trading Journal</title>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-<script src="assets/premium.js"></script>
-<style>
-/* ═══════════════════════════════════════════════════
-   DESIGN TOKEN SYSTEM — The Quantitative Atelier
-═══════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  /* Surface Tiers */
-  --surface:          #080f15;
-  --surface-low:      #0c141b;
-  --surface-container:#121a22;
-  --surface-high:     #172129;
-  --surface-highest:  #1d2730;
-  --surface-bright:   #232d37;
 
-  /* Brand */
-  --primary:          #99f7ff;
-  --primary-dim:      #00e2ee;
-  --primary-container:#00f1fe;
-  --on-primary:       #005f64;
-
-  /* Semantic */
-  --tertiary:         #afffd1;
-  --tertiary-dim:     #00efa0;
-  --error:            #ff716c;
-  --error-dim:        #d7383b;
-
-  /* Text */
-  --on-surface:       #eef4fd;
-  --on-surface-var:   #a5acb4;
-  --outline:          #6f767e;
-  --outline-var:      #424950;
-
-  /* Fonts */
-  --ff-head: 'Space Grotesk', sans-serif;
-  --ff-body: 'Geist', 'Inter', sans-serif;
-  --ff-mono: 'JetBrains Mono', monospace;
-
-  /* Sidebar */
-  --sidebar-w: 256px;
-  --sidebar-collapsed: 64px;
-}
-
-html, body {
-  background: var(--surface);
-  color: var(--on-surface);
-  font-family: var(--ff-body);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ═══════════════════════════════════════════════════
-   TYPOGRAPHY
-═══════════════════════════════════════════════════ */
-.font-head  { font-family: var(--ff-head); }
-.font-mono  { font-family: var(--ff-mono); }
-.text-primary    { color: var(--primary); }
-.text-tertiary   { color: var(--tertiary); }
-.text-error      { color: var(--error); }
-.text-on-sv      { color: var(--on-surface-var); }
-.text-outline    { color: var(--outline); }
-
-/* ═══════════════════════════════════════════════════
-   MATERIAL ICONS
-═══════════════════════════════════════════════════ */
-.icon {
-  font-family: 'Material Symbols Outlined';
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  font-size: 20px; line-height: 1; user-select: none;
-}
-.icon.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-.icon.sm   { font-size: 16px; }
-.icon.lg   { font-size: 24px; }
-
-/* ═══════════════════════════════════════════════════
-   SIDEBAR
-═══════════════════════════════════════════════════ */
-.sidebar {
-  position: fixed; left: 0; top: 0; height: 100vh; z-index: 200;
-  width: var(--sidebar-w);
-  background: var(--surface-low);
-  display: flex; flex-direction: column;
-  transition: width .25s cubic-bezier(.4,0,.2,1);
-  border-right: 1px solid rgba(66,73,80,.1);
-}
-.sidebar.collapsed { width: var(--sidebar-collapsed); }
-
-/* Logo row */
-.sidebar-logo {
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 14px;
-  flex-shrink: 0; overflow: hidden;
-  height: 64px; /* fixed height — same as toggle area */
-}
-.collapsed .sidebar-logo { justify-content: center; padding: 0; }
-.sidebar-logo-mark {
-  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dim));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 17px; line-height: 1;
-  color: var(--on-primary);
-  box-shadow: 0 0 16px rgba(153,247,255,.25);
-  font-family: 'Arial Unicode MS', 'Helvetica', sans-serif;
-  font-variation-settings: normal;
-  transition: box-shadow .15s;
-}
-/* When collapsed, clicking the mark expands — show pointer */
-.collapsed .sidebar-logo-mark { cursor: pointer; }
-.collapsed .sidebar-logo-mark:hover { box-shadow: 0 0 22px rgba(153,247,255,.5); }
-/* Small expand arrow on the logo mark when collapsed */
-.sidebar-logo-mark { position: relative; }
-.collapsed .sidebar-logo-mark::after {
-  content: '›';
-  position: absolute; bottom: -3px; right: -3px;
-  width: 13px; height: 13px; border-radius: 50%;
-  background: var(--surface-bright);
-  border: 1px solid rgba(153,247,255,.3);
-  font-size: 10px; line-height: 13px; text-align: center;
-  color: var(--primary); font-family: sans-serif;
-}
-.sidebar-logo-text {
-  white-space: nowrap; overflow: hidden;
-  max-width: 180px;
-  transition: max-width .25s cubic-bezier(.4,0,.2,1), opacity .2s;
-}
-.sidebar-logo-name {
-  font-family: var(--ff-head); font-size: 13px; font-weight: 800;
-  letter-spacing: .06em; text-transform: uppercase; color: var(--primary);
-  line-height: 1.1;
-}
-.sidebar-logo-sub {
-  font-family: var(--ff-mono); font-size: 8px; color: var(--outline);
-  letter-spacing: .08em; text-transform: uppercase; margin-top: 2px;
-}
-.collapsed .sidebar-logo-text { max-width: 0; opacity: 0; }
-
-.sidebar-new-btn {
-  margin: 0 10px 10px;
-  padding: 10px 0; border-radius: 8px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dim));
-  color: var(--on-primary); font-family: var(--ff-head);
-  font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-  border: none; cursor: pointer; transition: all .18s;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  box-shadow: 0 6px 20px rgba(153,247,255,.15);
-  overflow: hidden; flex-shrink: 0;
-}
-.sidebar-new-btn:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 10px 28px rgba(153,247,255,.22); }
-.sidebar-new-btn:active { transform: scale(.97); }
-.sidebar-new-btn .icon { font-size: 18px; flex-shrink: 0; }
-.sidebar-new-btn-label { white-space: nowrap; overflow: hidden; max-width: 120px; transition: max-width .25s cubic-bezier(.4,0,.2,1), opacity .18s; }
-.collapsed .sidebar-new-btn-label { max-width: 0; opacity: 0; }
-/* Collapsed: same height as nav items, no margin stretch */
-.collapsed .sidebar-new-btn {
-  margin: 4px 6px 4px;
-  padding: 10px 0;
-  width: calc(100% - 12px);
-  border-radius: 8px;
-}
-
-.sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 6px; }
-.sidebar-nav::-webkit-scrollbar { display: none; }
-
-.nav-item {
-  display: flex; align-items: center; gap: 11px;
-  padding: 9px 10px; border-radius: 8px; margin-bottom: 1px;
-  cursor: pointer; transition: all .15s;
-  color: var(--outline); font-family: var(--ff-body); font-size: 13px; font-weight: 500;
-  white-space: nowrap; position: relative;
-}
-.nav-item:hover { background: rgba(18,26,34,.9); color: var(--on-surface-var); }
-.nav-item.active { background: var(--surface-container); color: var(--primary); }
-.nav-item.active::before {
-  content: '';
-  position: absolute; left: 0; top: 22%; bottom: 22%;
-  width: 3px; border-radius: 0 3px 3px 0;
-  background: var(--primary);
-}
-.nav-item .icon { font-size: 20px; flex-shrink: 0; }
-.nav-item-label {
-  white-space: nowrap; overflow: hidden;
-  max-width: 180px; opacity: 1;
-  transition: max-width .25s cubic-bezier(.4,0,.2,1), opacity .18s;
-}
-.collapsed .nav-item-label { max-width: 0; opacity: 0; pointer-events: none; }
-/* Collapsed: centre the icon, keep same border-radius and height */
-.collapsed .nav-item { justify-content: center; padding: 10px 0; }
-.collapsed .nav-item.active::before { display: none; }
-/* Active glow on icon in collapsed state */
-.collapsed .nav-item.active .icon { color: var(--primary); filter: drop-shadow(0 0 5px rgba(153,247,255,.5)); }
-
-.sidebar-footer {
-  padding: 10px 6px; border-top: 1px solid rgba(66,73,80,.08);
-  flex-shrink: 0;
-}
-.sidebar-footer-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 7px 10px; border-radius: 6px; cursor: pointer;
-  color: var(--outline); font-size: 11px; transition: all .13s;
-  white-space: nowrap;
-}
-.sidebar-footer-item:hover { color: var(--on-surface); background: rgba(18,26,34,.6); }
-.collapsed .sidebar-footer-item { justify-content: center; padding: 7px 0; }
-.sidebar-footer-label {
-  max-width: 160px; overflow: hidden;
-  transition: max-width .25s cubic-bezier(.4,0,.2,1), opacity .18s;
-}
-.collapsed .sidebar-footer-label { max-width: 0; opacity: 0; }
-.topdate-sidebar {
-  padding: 6px 10px 2px;
-  font-size: 8px; color: var(--outline); font-family: var(--ff-mono);
-  letter-spacing: .04em; line-height: 1.4;
-  overflow: hidden; max-height: 40px;
-  transition: max-height .25s, opacity .18s;
-}
-.collapsed .topdate-sidebar { max-height: 0; opacity: 0; }
-
-/* Toggle chevron — sits at the right of the logo row, not absolutely positioned */
-.sidebar-toggle {
-  margin-left: auto; flex-shrink: 0;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--surface-container);
-  border: 1px solid rgba(66,73,80,.22);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .15s;
-  color: var(--outline);
-}
-.sidebar-toggle:hover { color: var(--primary); border-color: rgba(153,247,255,.4); background: var(--surface-high); }
-.sidebar-toggle .icon { font-size: 13px; }
-/* Collapsed: hide the toggle inside sidebar — toggling still works via the button */
-.collapsed .sidebar-toggle { display: none; }
-
-/* ═══════════════════════════════════════════════════
-   MAIN LAYOUT
-═══════════════════════════════════════════════════ */
-.main-wrap {
-  margin-left: var(--sidebar-w);
-  min-height: 100vh;
-  transition: margin-left .25s cubic-bezier(.4,0,.2,1);
-}
-.main-wrap.expanded { margin-left: var(--sidebar-collapsed); }
-
-.page-content { padding: 32px 32px 60px; max-width: 1400px; }
-.page { display: none; }
-.page.active { display: block; }
-
-/* Dashboard uses a different layout with right panel */
-#dashboard.active {
-  display: grid;
-  grid-template-columns: 1fr minmax(280px, 320px);
-  min-height: 100vh;
-  height: 100vh;
-  gap: 0;
-  overflow: hidden;
-}
-.dash-main {
-  padding: 32px 28px 60px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  min-height: 0;
-  -webkit-overflow-scrolling: touch;
-}
-.dash-right {
-  background: var(--surface-low);
-  border-left: 1px solid rgba(66,73,80,.1);
-  padding: 32px 20px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  min-height: 0;
-  align-self: stretch;
-}
-
-/* ═══════════════════════════════════════════════════
-   PAGE HEADER
-═══════════════════════════════════════════════════ */
-.page-header { margin-bottom: 28px; }
-.page-title {
-  font-family: var(--ff-head); font-size: 36px; font-weight: 900;
-  letter-spacing: -.03em; color: var(--on-surface); line-height: 1;
-}
-.page-sub {
-  font-size: 13px; color: var(--outline); margin-top: 6px; font-family: var(--ff-body);
-}
-
-/* ═══════════════════════════════════════════════════
-   PERIOD STRIP
-═══════════════════════════════════════════════════ */
-.pstrip { display: flex; align-items: center; gap: 4px; margin-bottom: 22px; flex-wrap: wrap; }
-.pslbl { font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono); margin-right: 8px; }
-.pbtn {
-  padding: 5px 14px; border-radius: 6px;
-  font-family: var(--ff-mono); font-size: 9px; font-weight: 600;
-  letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
-  border: 1px solid rgba(66,73,80,.22);
-  background: linear-gradient(165deg, rgba(29,39,48,.95) 0%, var(--surface-container) 55%, rgba(18,26,34,.98) 100%);
-  color: var(--outline);
-  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 2px 8px rgba(0,0,0,.18);
-  transition: box-shadow .18s ease, border-color .18s ease, color .15s ease, transform .12s ease;
-}
-.pbtn:hover:not(.on) {
-  background: linear-gradient(165deg, var(--surface-high) 0%, var(--surface-container) 100%);
-  color: var(--on-surface);
-  border-color: rgba(153,247,255,.18);
-  box-shadow: 0 0 14px rgba(153,247,255,.08), 0 2px 10px rgba(0,0,0,.22);
-}
-.pbtn.on {
-  background: linear-gradient(135deg, rgba(153,247,255,.22) 0%, rgba(0,226,238,.1) 50%, rgba(18,33,41,.95) 100%);
-  color: var(--primary);
-  border-color: rgba(153,247,255,.35);
-  box-shadow: 0 0 18px rgba(153,247,255,.14), 0 0 0 1px rgba(153,247,255,.08) inset, 0 2px 12px rgba(0,0,0,.25);
-}
-.pnl-bg-select {
-  max-width: 140px;
-  padding: 5px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(66,73,80,.28);
-  background: var(--surface-container);
-  color: var(--on-surface-var);
-  font-family: var(--ff-mono);
-  font-size: 9px;
-  cursor: pointer;
-}
-/* ═══════════════════════════════════════════════════
-   STAT CARDS
-═══════════════════════════════════════════════════ */
-.stat-grid {
-  display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px;
-  position: relative;
-  isolation: isolate;
-}
-.stat-card {
-  background: var(--surface-container);
-  border-radius: 12px; padding: 20px 22px;
-  position: relative; overflow: hidden;
-  transition: all .25s cubic-bezier(.4,0,.2,1);
-  /* Dynamic gradient support */
-  background-image: linear-gradient(135deg, var(--card-bg, var(--surface-container)) 0%, var(--surface-container) 100%);
-}
-.stat-card:hover { 
-  background-color: var(--surface-high);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(0,0,0,.3);
-  border-color: rgba(153,247,255,.2);
-}
-/* Spotlight Hover Effect */
-.stat-card::before {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(153,247,255,.06), transparent 40%);
-  opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 2;
-}
-.stat-card:hover::before { opacity: 1; }
-
-/* Perf mode: static premium wash (no mouse-tracking — initEffects is off) */
-html.perf-mode .stat-card::before {
-  opacity: 1;
-  background:
-    radial-gradient(ellipse 130% 85% at 14% 8%, rgba(153,247,255,.1) 0%, transparent 48%),
-    radial-gradient(ellipse 90% 70% at 92% 88%, rgba(0,226,238,.07) 0%, transparent 42%),
-    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(175,255,209,.05) 0%, transparent 55%);
-  transition: opacity .22s ease;
-}
-html.perf-mode .stat-card:hover::before {
-  background:
-    radial-gradient(ellipse 130% 85% at 18% 12%, rgba(153,247,255,.14) 0%, transparent 50%),
-    radial-gradient(ellipse 90% 70% at 88% 82%, rgba(175,255,209,.09) 0%, transparent 45%),
-    radial-gradient(ellipse 80% 60% at 48% 100%, rgba(0,241,254,.06) 0%, transparent 52%);
-}
-
-/* sparkline overlay */
-.spark-wrap {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 35px;
-  opacity: .4; pointer-events: none;
-  z-index: 4;
-}
-.spark-wrap canvas { width: 100% !important; height: 100% !important; }
-
-/* milled texture overlay */
-.stat-card::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(153,247,255,.03) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 1;
-}
-.stat-card-label {
-  font-size: 9px; font-weight: 700; letter-spacing: .16em;
-  text-transform: uppercase; color: var(--outline);
-  font-family: var(--ff-mono); margin-bottom: 10px;
-}
-.stat-card-val {
-  font-family: var(--ff-mono); font-size: 26px; font-weight: 700;
-  line-height: 1; letter-spacing: -.02em;
-}
-.stat-card-sub { font-size: 10px; color: var(--outline); margin-top: 7px; font-family: var(--ff-mono); }
-.val-primary  { color: var(--primary); }
-.val-tertiary { color: var(--tertiary); }
-.val-error    { color: var(--error); }
-.val-default  { color: var(--on-surface); }
-
-/* Odometer */
-.odo-wrap { display: inline-flex; height: 1.3em; line-height: 1.3em; overflow: hidden; vertical-align: middle; }
-.odo-col { display: flex; flex-direction: column; transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1); }
-.odo-num { display: block; height: 1.3em; text-align: center; font-family: var(--ff-mono); }
-
-/* Heatmap */
-.hmap-scroll {
-  overflow-x: auto;
-  overflow-y: visible;
-  padding-bottom: 10px;
-  max-height: none;
-  -webkit-overflow-scrolling: touch;
-}
-.hmap { border-collapse: separate; border-spacing: 2px; font-family: var(--ff-mono); font-size: 8px; }
-.hmap th { font-weight: 700; color: var(--outline); text-transform: uppercase; padding: 4px 8px; text-align: center; }
-.hmap td { width: 32px; height: 28px; border-radius: 3px; text-align: center; font-weight: 700; vertical-align: middle; }
-.hmap tbody tr { content-visibility: auto; contain-intrinsic-size: auto 28px; }
-.hmap-row-lbl { text-align: left !important; color: var(--on-surface-var); font-size: 9px; min-width: 80px; }
-.hm-cell { transition: transform .12s ease, box-shadow .12s ease; cursor: help; }
-.hm-cell:hover { transform: scale(1.04); z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
-.hm-p-vhi { background: rgba(175,255,209,.25); color: var(--tertiary); }
-.hm-p-hi  { background: rgba(175,255,209,.15); color: var(--tertiary); }
-.hm-p-lo  { background: rgba(255,113,108,.12); color: var(--error); }
-.hm-p-vlo { background: rgba(255,113,108,.22); color: var(--error); }
-.hm-p-neu { background: var(--surface-highest); color: var(--outline); }
-
-/* Staggered entrance animations */
-@keyframes slideFadeUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.anim { opacity: 0; animation: slideFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.anim-1 { animation-delay: 50ms; }
-.anim-2 { animation-delay: 100ms; }
-.anim-3 { animation-delay: 150ms; }
-.anim-4 { animation-delay: 200ms; }
-.anim-5 { animation-delay: 300ms; }
-.anim-6 { animation-delay: 400ms; }
-
-/* ═══════════════════════════════════════════════════
-   BENTO GRID LAYOUT (The Terminal Hybrid Grid)
-═══════════════════════════════════════════════════ */
-.bento-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px;
-  perspective: 1000px; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s;
-}
-.bento-card {
-  background: var(--surface-low); border-radius: 12px;
-  box-shadow: 0 1px 0 rgba(66,73,80,.08), 0 4px 20px rgba(0,0,0,.18);
-  display: flex; flex-direction: column;
-  min-height: 0;
-  overflow: visible;
-  transition: all 0.25s ease;
-}
-.bento-card:not(.full) { min-height: 320px; }
-.bento-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.3); }
-.bento-card.full { grid-column: 1 / -1; }
-.bento-head {
-  padding: 14px 20px; border-bottom: 1px solid rgba(66,73,80,.1);
-  display: flex; align-items: center; justify-content: space-between;
-  background: rgba(255,255,255,0.01);
-}
-.bento-title {
-  font-family: var(--ff-head); font-size: 10px; font-weight: 800;
-  letter-spacing: .2em; text-transform: uppercase; color: var(--on-surface-var);
-}
-.bento-body {
-  flex: 1 1 auto;
-  min-height: 240px;
-  padding: 10px 12px 14px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: visible;
-}
-.bento-chart {
-  position: absolute;
-  inset: 0;
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-}
-.bento-chart.on { opacity: 1; pointer-events: auto; }
-
-/* Heatmap: grow with full table — no absolute clip inside bento */
-.bento-card--heatmap {
-  min-height: auto !important;
-  align-self: start;
-}
-.bento-card--heatmap .bento-body--heatmap {
-  flex: 0 0 auto !important;
-  min-height: 0 !important;
-  overflow: visible;
-}
-.bento-card--heatmap .bento-chart--heatmap {
-  position: relative !important;
-  inset: auto !important;
-  height: auto !important;
-  min-height: 0 !important;
-  width: 100% !important;
-}
-.bento-card--heatmap .bento-chart--heatmap,
-.bento-card--heatmap .hmap-scroll {
-  transform: none !important;
-}
-
-/* Toggles within Bento Head */
-.win-toggles { display: flex; background: var(--surface-highest); border-radius: 4px; padding: 2px; }
-.win-btn {
-  background: none; border: none; padding: 4px 10px;
-  font-family: var(--ff-mono); font-size: 8px; font-weight: 700;
-  color: var(--outline); cursor: pointer; border-radius: 3px;
-  transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.05em;
-}
-.win-btn.on { background: rgba(153,247,255,.1); color: var(--primary); }
-.win-btn:hover:not(.on) { color: var(--on-surface); }
-
-/* Scroll Reveal — base + premium drift in assets/premium.css */
-.reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
-.reveal.visible { opacity: 1; transform: translateY(0); }
-
-/* ═══════════════════════════════════════════════════
-   PROFIT CALENDAR (redesigned)
-═══════════════════════════════════════════════════ */
-.calnav { display: flex; align-items: center; gap: 8px; }
-.calbtn {
-  width: 24px; height: 24px; border-radius: 4px; cursor: pointer;
-  background: var(--surface-container); border: none; color: var(--outline);
-  font-size: 14px; display: flex; align-items: center; justify-content: center;
-  transition: all .13s; line-height: 1;
-}
-.calbtn:hover { background: var(--surface-high); color: var(--primary); }
-.calmn { font-size: 10px; font-weight: 700; color: var(--on-surface); min-width: 130px; text-align: center; font-family: var(--ff-mono); }
-.calg7 { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
-.caldow { text-align: center; font-size: 7px; font-weight: 700; letter-spacing: .1em; color: var(--outline); padding: 5px 0; font-family: var(--ff-mono); text-transform: uppercase; }
-.calday {
-  aspect-ratio: 1; background: var(--surface-container);
-  border-radius: 6px; padding: 5px 6px;
-  display: flex; flex-direction: column; transition: all .13s;
-}
-.calday.empty { background: transparent; opacity: 0; }
-.calday.today { box-shadow: inset 0 0 0 1px rgba(153,247,255,.35); }
-.calday.win  { background: rgba(175,255,209,.12); }
-.calday.loss { background: rgba(255,113,108,.10); }
-.calday.be   { background: rgba(153,247,255,.07); }
-.calday.click { cursor: pointer; }
-.calday.click:hover { background: var(--surface-high); }
-.calnum { font-size: 8px; font-weight: 500; color: var(--outline); font-family: var(--ff-mono); }
-.calpnl { font-size: 11px; font-weight: 700; margin-top: auto; letter-spacing: -.01em; font-family: var(--ff-mono); }
-.calpnl.w { color: var(--tertiary); }
-.calpnl.l { color: var(--error); }
-.calpnl.b { color: var(--primary); }
-.calct { font-size: 7px; color: var(--outline); font-family: var(--ff-mono); }
-
-/* ═══════════════════════════════════════════════════
-   RIGHT SIDEBAR (Dashboard Evaluation)
-═══════════════════════════════════════════════════ */
-.eval-heading {
-  font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--primary); margin-bottom: 20px;
-  display: flex; align-items: center; gap: 8px; font-family: var(--ff-mono);
-}
-.eval-pulse {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(153,247,255,.4); } 50%{ opacity:.8; box-shadow:0 0 0 6px rgba(153,247,255,0); } }
-
-.eval-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; border-radius: 8px; margin-bottom: 4px;
-  background: var(--surface-container);
-}
-.eval-key { font-size: 10px; color: var(--on-surface-var); font-family: var(--ff-body); }
-.eval-val { font-size: 11px; font-weight: 700; font-family: var(--ff-mono); }
-.eval-val.w  { color: var(--tertiary); }
-.eval-val.l  { color: var(--error); }
-.eval-val.c  { color: var(--primary); }
-.eval-val.r  { color: #f0b429; }
-.eval-val.p  { color: #c084fc; }
-
-.sdots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
-.sdot {
-  width: 18px; height: 18px; border-radius: 3px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 7px; font-weight: 700; font-family: var(--ff-mono);
-}
-.sdot.W { background: rgba(175,255,209,.15); color: var(--tertiary); }
-.sdot.L { background: rgba(255,113,108,.12); color: var(--error); }
-.sdot.B { background: rgba(153,247,255,.08); color: var(--primary); }
-
-.exec-log-head { font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--outline); margin: 22px 0 12px; font-family: var(--ff-mono); }
-.exec-entry {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 0; border-bottom: 1px solid rgba(66,73,80,.1);
-}
-.exec-entry:last-child { border-bottom: none; }
-.exec-bar { width: 3px; border-radius: 2px; align-self: stretch; min-height: 32px; flex-shrink: 0; }
-.exec-bar.w { background: var(--tertiary); }
-.exec-bar.l { background: var(--error); }
-.exec-bar.b { background: var(--primary); }
-.exec-pair { font-size: 11px; font-weight: 700; color: var(--on-surface); font-family: var(--ff-body); }
-.exec-meta { font-size: 9px; color: var(--outline); font-family: var(--ff-mono); margin-top: 2px; }
-.exec-r    { font-size: 11px; font-weight: 700; font-family: var(--ff-mono); text-align: right; }
-
-/* ═══════════════════════════════════════════════════
-   FORM ELEMENTS
-═══════════════════════════════════════════════════ */
-.form-section {
-  background: var(--surface-low);
-  border-radius: 12px; padding: 28px; margin-bottom: 16px;
-}
-.form-section.accent-primary { border-left: 3px solid var(--primary); }
-.form-section.accent-dim     { border-left: 3px solid var(--surface-bright); }
-.form-section-head {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 22px;
-}
-.form-section-icon { font-size: 20px; color: var(--primary); }
-.form-section-title {
-  font-family: var(--ff-head); font-size: 14px; font-weight: 800;
-  letter-spacing: .06em; text-transform: uppercase; color: var(--on-surface);
-}
-.fg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.fg2.fg3 { grid-template-columns: 1fr 1fr 1fr; }
-.fgrp { display: flex; flex-direction: column; gap: 6px; }
-.fgrp.full { grid-column: 1 / -1; }
-.flbl {
-  font-size: 9px; font-weight: 600; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono);
-}
-
-/* Ghost border inputs */
-input, select, textarea {
-  background: var(--surface-container);
-  border: 1px solid rgba(66,73,80,.15);
-  color: var(--on-surface);
-  padding: 10px 13px; border-radius: 8px;
-  font-family: var(--ff-mono); font-size: 12px;
-  outline: none; transition: all .13s; width: 100%;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: rgba(153,247,255,.4);
-  box-shadow: 0 0 0 3px rgba(153,247,255,.06);
-}
-input::placeholder, textarea::placeholder { color: var(--outline-var); opacity: .5; }
-select option { background: var(--surface-container); }
-textarea { resize: vertical; min-height: 80px; line-height: 1.6; font-family: var(--ff-body); font-size: 13px; }
-input[type="file"] { display: none; }
-
-/* Segmented controls — terminal style */
-.seg { display: flex; gap: 6px; flex-wrap: wrap; }
-.segbtn {
-  flex: 1; min-width: 60px; padding: 9px 8px;
-  font-family: var(--ff-mono); font-size: 9px; font-weight: 600;
-  letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
-  border: 1px solid rgba(66,73,80,.2); background: var(--surface-container);
-  color: var(--outline); border-radius: 6px; transition: all .13s;
-}
-.segbtn:hover:not(.on) { background: var(--surface-high); color: var(--on-surface); }
-.segbtn.on.w { background: rgba(175,255,209,.1); border-color: rgba(175,255,209,.25); color: var(--tertiary); }
-.segbtn.on.l { background: rgba(255,113,108,.1); border-color: rgba(255,113,108,.25); color: var(--error); }
-.segbtn.on.c { background: rgba(153,247,255,.08); border-color: rgba(153,247,255,.25); color: var(--primary); }
-.segbtn.on.r { background: rgba(240,180,41,.08); border-color: rgba(240,180,41,.25); color: #f0b429; }
-.segbtn.on.p { background: rgba(192,132,252,.08); border-color: rgba(192,132,252,.25); color: #c084fc; }
-
-/* ═══════════════════════════════════════════════════
-   IMAGE UPLOAD ZONE
-═══════════════════════════════════════════════════ */
-.img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.imgzone {
-  aspect-ratio: 16/9;
-  background: var(--surface-container);
-  border: 2px dashed rgba(66,73,80,.3);
-  border-radius: 8px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  cursor: pointer; transition: all .18s; gap: 6px;
-}
-.imgzone:hover, .imgzone.drag {
-  border-color: rgba(153,247,255,.35);
-  background: rgba(153,247,255,.04);
-}
-.imgzone .icon { font-size: 28px; color: var(--outline-var); }
-.imgzone-txt { font-size: 9px; color: var(--outline); font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: .08em; }
-.imgprevs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.imgwrap { position: relative; display: inline-block; }
-.imgth { width: 90px; height: 64px; object-fit: cover; border-radius: 6px; cursor: pointer; display: block; transition: opacity .13s; }
-.imgth:hover { opacity: .85; }
-.imgdel {
-  position: absolute; top: -5px; right: -5px;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: var(--error); color: #fff; font-size: 8px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border: none; line-height: 1;
-}
-.paste-hint {
-  font-size: 9px; color: var(--outline); font-family: var(--ff-mono);
-  margin-top: 4px; display: flex; align-items: center; gap: 5px;
-}
-kbd {
-  background: var(--surface-high); border: 1px solid rgba(66,73,80,.4);
-  border-radius: 3px; padding: 1px 5px; font-family: var(--ff-mono);
-  font-size: 8px; color: var(--on-surface-var);
-}
-
-/* ═══════════════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════════════ */
-.btn {
-  padding: 10px 24px; border-radius: 8px;
-  font-family: var(--ff-head); font-size: 10px; font-weight: 800;
-  letter-spacing: .1em; text-transform: uppercase;
-  cursor: pointer; border: none; transition: all .15s;
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dim));
-  color: var(--on-primary);
-  box-shadow: 0 8px 24px rgba(153,247,255,.15);
-}
-.btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 12px 30px rgba(153,247,255,.25); }
-.btn-primary:active { transform: scale(.97); }
-.btn-ghost {
-  background: var(--surface-container);
-  border: 1px solid rgba(66,73,80,.2);
-  color: var(--on-surface-var);
-}
-.btn-ghost:hover { background: var(--surface-high); color: var(--on-surface); }
-.btn-danger {
-  background: transparent;
-  border: 1px solid rgba(255,113,108,.3);
-  color: var(--error); padding: 6px 12px; font-size: 9px;
-}
-.btn-danger:hover { background: rgba(255,113,108,.08); border-color: var(--error); }
-
-/* Small action button */
-.btn-xs {
-  padding: 5px 11px; border-radius: 5px;
-  font-family: var(--ff-mono); font-size: 8px; font-weight: 600;
-  letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
-  border: 1px solid rgba(66,73,80,.25); background: var(--surface-container);
-  color: var(--on-surface-var); transition: all .13s;
-}
-.btn-xs:hover { border-color: rgba(66,73,80,.5); color: var(--on-surface); }
-.btn-xs.c { border-color: rgba(153,247,255,.3); color: var(--primary); background: rgba(153,247,255,.05); }
-.btn-xs.c:hover { background: rgba(153,247,255,.1); }
-
-/* Icon button */
-.btn-icon {
-  width: 32px; height: 32px; border-radius: 6px; border: none;
-  background: var(--surface-container); color: var(--outline);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .13s;
-}
-.btn-icon:hover { background: var(--surface-high); color: var(--primary); }
-
-/* ═══════════════════════════════════════════════════
-   BADGES / CHIPS
-═══════════════════════════════════════════════════ */
-.chip {
-  display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: 4px;
-  font-size: 9px; font-weight: 700; letter-spacing: .05em;
-  font-family: var(--ff-mono); text-transform: uppercase;
-  background: var(--surface-highest);
-}
-.chip.win  { color: var(--tertiary); background: rgba(175,255,209,.1); }
-.chip.loss { color: var(--error); background: rgba(255,113,108,.1); }
-.chip.be   { color: var(--primary); background: rgba(153,247,255,.08); }
-.chip.long { color: var(--tertiary); background: rgba(175,255,209,.08); }
-.chip.short{ color: var(--error); background: rgba(255,113,108,.08); }
-.chip.aligned{ color: var(--primary); background: rgba(153,247,255,.08); }
-.chip.partial{ color: #f0b429; background: rgba(240,180,41,.08); }
-.chip.noalign{ color: var(--error); background: rgba(255,113,108,.08); }
-.chip.model{ color: #c084fc; background: rgba(192,132,252,.08); }
-
-/* Keyboard shortcut badge */
-.kbd-badge {
-  width: 14px; height: 14px; border-radius: 3px;
-  background: var(--surface-high); border: 1px solid rgba(66,73,80,.4);
-  font-size: 7px; font-weight: 700; color: var(--outline);
-  font-family: var(--ff-mono); display: inline-flex;
-  align-items: center; justify-content: center;
-  margin-left: 4px; line-height: 1;
-}
-
-/* ═══════════════════════════════════════════════════
-   TRADE TABLE
-═══════════════════════════════════════════════════ */
-.ttbl { width: 100%; border-collapse: collapse; font-family: var(--ff-mono); font-size: 11px; }
-.ttbl th {
-  text-align: left; padding: 10px 16px; font-size: 8px; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--outline);
-  background: var(--surface-container); cursor: default;
-}
-.ttbl th.sortable { cursor: pointer; transition: color .13s; }
-.ttbl th.sortable:hover { color: var(--primary); }
-.ttbl th.sorted-asc::after  { content: ' ↑'; color: var(--primary); }
-.ttbl th.sorted-desc::after { content: ' ↓'; color: var(--primary); }
-.ttbl td { padding: 12px 16px; border-bottom: 1px solid rgba(66,73,80,.07); vertical-align: middle; }
-.ttbl .mrow { cursor: pointer; transition: background .1s; content-visibility: auto; contain-intrinsic-size: auto 40px; }
-.ttbl .mrow:hover td { background: rgba(23,33,41,.5); }
-.ttbl .erow.hidden { display: none; }
-.ttbl .erow td { padding: 0; }
-.exp-inner { padding: 18px 20px; background: var(--surface-container); }
-
-/* ═══════════════════════════════════════════════════
-   FILTER BAR
-═══════════════════════════════════════════════════ */
-.fbar { display: flex; align-items: center; gap: 7px; padding: 12px 18px; flex-wrap: wrap; background: var(--surface-container); }
-.fbar-lbl { font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono); }
-.ftag {
-  padding: 4px 11px; border-radius: 4px;
-  font-family: var(--ff-mono); font-size: 8px; font-weight: 600;
-  letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
-  background: var(--surface-high); color: var(--outline); border: none;
-  transition: all .13s;
-}
-.ftag:hover:not(.on) { color: var(--on-surface); background: var(--surface-bright); }
-.ftag.on { background: rgba(153,247,255,.1); color: var(--primary); }
-.fsep { width: 1px; height: 16px; background: rgba(66,73,80,.3); flex-shrink: 0; }
-.fsearch {
-  background: var(--surface-high); border: 1px solid rgba(66,73,80,.15);
-  color: var(--on-surface); padding: 5px 11px; border-radius: 5px;
-  font-family: var(--ff-mono); font-size: 9px; outline: none;
-  width: 140px; transition: border-color .13s;
-}
-.fsearch:focus { border-color: rgba(153,247,255,.3); }
-.fsearch::placeholder { color: var(--outline); opacity: .6; }
-.fcount { font-size: 9px; color: var(--outline); font-family: var(--ff-mono); margin-left: auto; }
-
-/* ═══════════════════════════════════════════════════
-   WEEKLY PLAN CHIPS
-═══════════════════════════════════════════════════ */
-.wchips { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-.wchip {
-  background: var(--surface-container);
-  border-radius: 12px; padding: 18px 20px; cursor: pointer;
-  transition: all .18s; position: relative; overflow: hidden;
-}
-.wchip::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; background: var(--primary); opacity: 0; transition: opacity .18s;
-}
-.wchip:hover { background: var(--surface-high); transform: translateY(-1px); }
-.wchip:hover::before, .wchip.sel::before { opacity: 1; }
-.wchip.sel { background: rgba(153,247,255,.05); }
-/* milled texture */
-.wchip::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(153,247,255,.03) 0%, transparent 50%);
-  pointer-events: none;
-}
-.wchip-date { font-family: var(--ff-head); font-size: 12px; font-weight: 800; margin-bottom: 5px; }
-.wchip-preview { font-size: 10px; color: var(--outline); font-family: var(--ff-body); line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; margin-bottom: 8px; }
-.wchip-stats { display: flex; gap: 5px; flex-wrap: wrap; }
-.wchip-stat { font-size: 9px; font-family: var(--ff-mono); font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-.wchip-thumbs { display: flex; gap: 4px; margin-top: 8px; }
-.wchip-thumb { width: 44px; height: 30px; object-fit: cover; border-radius: 4px; opacity: .7; }
-
-/* Week editor */
-.weditor { background: var(--surface-low); border-radius: 12px; padding: 28px; margin-bottom: 20px; display: none; box-shadow: 0 0 0 1px rgba(153,247,255,.15), 0 20px 40px rgba(0,0,0,.3); }
-.weditor.open { display: block; animation: slideIn .2s ease; }
-@keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-.we-day-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
-.we-day-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono); margin-bottom: 5px; }
-
-/* ═══════════════════════════════════════════════════
-   SHARE CARD
-═══════════════════════════════════════════════════ */
-.sc-wrap { max-width: 600px; margin: 0 auto; }
-.sc-card {
-  border-radius: 16px; padding: 34px; position: relative; overflow: hidden;
-  background: linear-gradient(145deg, var(--surface-low) 0%, var(--surface-container) 60%, var(--surface) 100%);
-  box-shadow: 0 40px 80px rgba(0,0,0,.7);
-  isolation: isolate;
-}
-.sc-card-pnl-bg {
-  position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background-image: var(--sc-pnl-bg-img, none);
-  background-size: cover; background-position: center;
-  opacity: 0.1;
-}
-.sc-card.has-sc-pnl-bg .sc-card-pnl-bg { opacity: 0.12; }
-.sc-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--sc-ac,#99f7ff), transparent);
-}
-.sc-card::after {
-  content: ''; position: absolute; top: -80px; right: -60px;
-  width: 280px; height: 280px;
-  background: radial-gradient(circle, var(--sc-glow,rgba(153,247,255,.07)) 0%, transparent 70%);
-  pointer-events: none;
-}
-/* milled texture on card */
-.sc-card-texture {
-  position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  background: linear-gradient(135deg, rgba(153,247,255,.04) 0%, transparent 50%);
-}
-.sc-card #sc-empty,
-.sc-card #sc-content { position: relative; z-index: 2; }
-.sc-dot { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; font-family: var(--ff-mono); }
-.sc-dot.W { background: rgba(175,255,209,.15); color: var(--tertiary); }
-.sc-dot.L { background: rgba(255,113,108,.12); color: var(--error); }
-.sc-dot.B { background: rgba(153,247,255,.08); color: var(--primary); }
-.ac-chip { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: all .13s; }
-.ac-chip.sel { border-color: var(--on-surface); transform: scale(1.3); }
-.sc-pbtn { padding: 6px 15px; border-radius: 6px; font-family: var(--ff-head); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(66,73,80,.2); background: var(--surface-container); color: var(--outline); transition: all .18s; }
-.sc-pbtn.active { background: linear-gradient(135deg, var(--primary), var(--primary-dim)); color: var(--on-primary); border-color: transparent; }
-.sc-pbtn:hover:not(.active) { background: var(--surface-high); color: var(--on-surface); }
-.sc-pbtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.dl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 26px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--primary-dim)); color: var(--on-primary); font-family: var(--ff-head); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; border: none; transition: transform .2s, box-shadow .2s, opacity .2s; margin-top: 18px; box-shadow: 0 8px 24px rgba(153,247,255,.15); min-height: 42px; }
-.dl-btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 12px 30px rgba(153,247,255,.25); }
-.dl-btn:active { transform: translateY(0); opacity: 1; }
-.dl-btn:focus-visible { outline: 2px solid var(--on-primary); outline-offset: 3px; box-shadow: 0 8px 24px rgba(153,247,255,.2), 0 0 0 3px rgba(153,247,255,.25); }
-.ac-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-
-/* ═══════════════════════════════════════════════════
-   MODAL / OVERLAYS
-═══════════════════════════════════════════════════ */
-.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-.modal-bg.open { display: flex; }
-.modal { background: var(--surface-low); border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 40px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(66,73,80,.15); animation: modalIn .18s ease; }
-@keyframes modalIn { from { opacity:0; transform:scale(.97) translateY(-8px); } to { opacity:1; transform:scale(1) translateY(0); } }
-.modal-head { padding: 18px 22px; border-bottom: 1px solid rgba(66,73,80,.1); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--surface-low); z-index: 1; border-radius: 12px 12px 0 0; }
-.modal-title { font-family: var(--ff-head); font-size: 13px; font-weight: 800; letter-spacing: .04em; }
-.modal-x { background: none; border: none; color: var(--outline); font-size: 18px; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: color .13s; line-height: 1; }
-.modal-x:hover { color: var(--on-surface); }
-.modal-body { padding: 22px; }
-
-/* Glass variant for week view */
-.wview-bg { position: fixed; inset: 0; background: rgba(0,0,0,.88); z-index: 400; display: none; align-items: flex-start; justify-content: center; padding: 30px 20px; overflow-y: auto; backdrop-filter: blur(6px); }
-.wview-bg.open { display: flex; }
-.wview { background: var(--surface-low); border-radius: 12px; width: 100%; max-width: 880px; box-shadow: 0 40px 100px rgba(0,0,0,.8), 0 0 0 1px rgba(66,73,80,.12); animation: modalIn .2s ease; }
-.wview-head { padding: 18px 24px; border-bottom: 1px solid rgba(66,73,80,.1); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--surface-low); z-index: 1; border-radius: 12px 12px 0 0; }
-.wview-body { padding: 24px; }
-.wview-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 22px; }
-.wview-stat { background: var(--surface-container); border-radius: 8px; padding: 12px 14px; }
-.wview-stat-lbl { font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono); margin-bottom: 5px; }
-.wview-stat-val { font-size: 16px; font-weight: 800; font-family: var(--ff-head); }
-.wview-sec { margin-bottom: 20px; }
-.wview-sec-lbl { font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono); margin-bottom: 8px; display: block; }
-.wview-sec-val { font-size: 12px; color: var(--on-surface-var); font-family: var(--ff-body); line-height: 1.7; white-space: pre-wrap; }
-.wview-days { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
-.wview-day { background: var(--surface-container); border-radius: 8px; padding: 12px; }
-.wview-day-lbl { font-size: 8px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--outline); font-family: var(--ff-mono); margin-bottom: 6px; }
-.wview-day-val { font-size: 10px; color: var(--on-surface-var); font-family: var(--ff-body); line-height: 1.55; white-space: pre-wrap; }
-.wview-charts { display: flex; gap: 10px; flex-wrap: wrap; }
-.wview-img { height: 90px; border-radius: 6px; cursor: pointer; object-fit: cover; max-width: 160px; transition: opacity .13s; }
-.wview-img:hover { opacity: .85; }
-
-/* Calendar Side Panel */
-.day-panel-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,.7);
-  z-index: 550; display: none; align-items: stretch; justify-content: flex-end;
-  backdrop-filter: blur(4px); animation: fadeIn .2s ease;
-}
-.day-panel-bg.open { display: flex; }
-.day-panel {
-  background: var(--surface-low); width: 440px; max-width: 90vw;
-  box-shadow: -10px 0 50px rgba(0,0,0,.6);
-  display: flex; flex-direction: column;
-  transform: translateX(100%);
-  transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.day-panel-bg.open .day-panel { transform: translateX(0); }
-.day-panel-head {
-  padding: 24px 28px; border-bottom: 1px solid rgba(66,73,80,.15);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.day-panel-date { font-family: var(--ff-head); font-size: 14px; font-weight: 800; color: var(--on-surface); }
-.day-panel-body { padding: 28px; flex: 1; overflow-y: auto; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { from { opacity:0; transform:scale(.96) translateY(-4px); } to { opacity:1; transform:scale(1) translateY(0); } }
-
-/* ═══════════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════════ */
-.toast {
-  position: fixed; bottom: max(24px, env(safe-area-inset-bottom, 0px)); right: max(24px, env(safe-area-inset-right, 0px)); left: auto;
-  max-width: min(420px, calc(100vw - 48px)); text-align: left; word-wrap: break-word; hyphens: auto;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dim)); color: var(--on-primary);
-  padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 10px; letter-spacing: .06em; line-height: 1.45;
-  font-family: var(--ff-mono); transform: translateY(88px); opacity: 0; transition: transform .28s cubic-bezier(.16,1,.3,1), opacity .28s ease;
-  z-index: 9999; box-shadow: 0 8px 28px rgba(0,0,0,.35), 0 0 0 1px rgba(0,95,100,.2) inset; pointer-events: none;
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-@media (prefers-reduced-motion: reduce) {
-  .toast { transition-duration: .14s; transform: translateY(16px); }
-}
-
-/* ═══════════════════════════════════════════════════
-   LIGHTBOX
-═══════════════════════════════════════════════════ */
-.lb { position: fixed; inset: 0; background: rgba(0,0,0,.94); z-index: 9998; display: none; align-items: center; justify-content: center; cursor: zoom-out; }
-.lb.open { display: flex; }
-.lb img { max-width: 90vw; max-height: 88vh; border-radius: 8px; object-fit: contain; }
-.lb-x {
-  position: absolute; top: 18px; right: 22px; font-size: 22px; line-height: 1;
-  color: rgba(255,255,255,.35); cursor: pointer; transition: color .13s;
-  background: none; border: none; padding: 4px 8px; border-radius: 6px; font-family: inherit;
-}
-.lb-x:hover { color: var(--on-surface); background: rgba(255,255,255,.06); }
-.lb-x:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; color: var(--on-surface); }
-
-/* ═══════════════════════════════════════════════════
-   ANIMATIONS
-═══════════════════════════════════════════════════ */
-@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-.anim { opacity: 0; animation: fadeUp .4s ease forwards; }
-.anim-1 { animation-delay: .05s; } .anim-2 { animation-delay: .10s; }
-.anim-3 { animation-delay: .15s; } .anim-4 { animation-delay: .20s; }
-.anim-5 { animation-delay: .25s; } .anim-6 { animation-delay: .30s; }
-
-/* ═══════════════════════════════════════════════════
-   CUSTOM CONFIRM DIALOG
-═══════════════════════════════════════════════════ */
-.confirm-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,.75);
-  z-index: 9000; display: none; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
-}
-.confirm-bg.open { display: flex; }
-.confirm-box {
-  background: var(--surface-high); border-radius: 12px;
-  padding: 26px 28px; max-width: 380px; width: 90%;
-  box-shadow: 0 30px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(66,73,80,.2);
-  animation: modalIn .15s ease;
-}
-.confirm-msg {
-  font-family: var(--ff-body); font-size: 13px; color: var(--on-surface);
-  line-height: 1.55; margin-bottom: 20px;
-}
-.confirm-msg strong { font-weight: 700; color: var(--primary); }
-.confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-/* ═══════════════════════════════════════════════════
-   MODEL MANAGER (Add Trade page)
-═══════════════════════════════════════════════════ */
-.model-mgr { margin-top: 12px; }
-.model-mgr-list { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; min-height: 28px; }
-.model-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: var(--surface-highest); border-radius: 5px;
-  padding: 4px 9px; font-size: 10px; font-family: var(--ff-mono);
-  color: var(--on-surface-var); transition: background .13s;
-}
-.model-tag:hover { background: var(--surface-bright); }
-.model-tag-x {
-  background: none; border: none; color: var(--outline);
-  cursor: pointer; padding: 0; font-size: 11px; line-height: 1;
-  transition: color .13s;
-}
-.model-tag-x:hover { color: var(--error); }
-.model-add-row { display: flex; gap: 8px; }
-.model-add-input {
-  flex: 1; background: var(--surface-container);
-  border: 1px solid rgba(66,73,80,.2); color: var(--on-surface);
-  padding: 7px 11px; border-radius: 6px; font-family: var(--ff-mono);
-  font-size: 11px; outline: none; transition: border-color .13s; width: auto;
-}
-.model-add-input:focus { border-color: rgba(153,247,255,.4); }
-.model-add-btn {
-  padding: 7px 14px; border-radius: 6px;
-  background: rgba(153,247,255,.1); border: 1px solid rgba(153,247,255,.25);
-  color: var(--primary); font-family: var(--ff-mono); font-size: 9px;
-  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-  cursor: pointer; transition: all .13s; white-space: nowrap;
-}
-.model-add-btn:hover { background: rgba(153,247,255,.18); }
-
-/* ═══════════════════════════════════════════════════
-   FLOATING MANAGE MODELS BUTTON + MODAL
-═══════════════════════════════════════════════════ */
-.mgr-fab {
-  position: fixed; bottom: 24px; left: calc(var(--sidebar-w) + 20px);
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 14px 7px 10px; border-radius: 20px;
-  background: var(--surface-high);
-  border: 1px solid rgba(66,73,80,.28);
-  color: var(--outline); font-family: var(--ff-mono);
-  font-size: 9px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
-  cursor: pointer; transition: all .18s; z-index: 90;
-  box-shadow: 0 4px 20px rgba(0,0,0,.3);
-}
-.mgr-fab:hover { color: var(--primary); border-color: rgba(153,247,255,.3); background: var(--surface-bright); }
-.mgr-fab .icon { font-size: 14px; }
-.mgr-fab-collapsed { left: calc(var(--sidebar-collapsed) + 20px); }
-
-.mgr-modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,.55);
-  z-index: 450; display: none; align-items: flex-end; justify-content: flex-start;
-  padding-bottom: 70px;
-  padding-left: calc(var(--sidebar-w) + 20px);
-  backdrop-filter: blur(2px);
-}
-.mgr-modal-bg.open { display: flex; }
-.mgr-modal {
-  background: var(--surface-highest);
-  border: 1px solid rgba(66,73,80,.22);
-  border-radius: 12px; padding: 16px 18px;
-  width: 320px; max-width: 88vw;
-  box-shadow: 0 12px 40px rgba(0,0,0,.55);
-  animation: popIn .15s ease;
-}
-.mgr-modal-title {
-  font-size: 8px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--outline); font-family: var(--ff-mono);
-  margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
-}
-.mgr-modal-x {
-  background: none; border: none; color: var(--outline); cursor: pointer;
-  font-size: 14px; line-height: 1; padding: 0; transition: color .13s;
-}
-.mgr-modal-x:hover { color: var(--on-surface); }
-
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--surface-low); }
-::-webkit-scrollbar-thumb { background: var(--surface-high); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-/* ═══════════════════════════════════════════════════
-   EMPTY STATE
-═══════════════════════════════════════════════════ */
-.empty { text-align: center; padding: 60px 20px; color: var(--outline); font-family: var(--ff-mono); font-size: 10px; }
-.empty-ico { font-size: 26px; display: block; margin-bottom: 12px; opacity: .18; }
-
-/* ═══════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════ */
-@media (max-width: 1100px) {
-  #dashboard.active {
-    grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
-  .dash-right { display: none; }
-  .bento-grid { grid-template-columns: 1fr; }
-  .bento-card { grid-column: 1 / -1; }
-  .stat-grid { grid-template-columns: repeat(2,1fr); }
-}
-@media (max-width: 768px) {
-  .sidebar { width: var(--sidebar-collapsed) !important; }
-  .main-wrap { margin-left: var(--sidebar-collapsed) !important; }
-  .sidebar-logo-text, .nav-item-label, .sidebar-new-btn span:not(.icon) { display: none; }
-  .sidebar-new-btn { padding: 10px; }
-  .sidebar-toggle { display: none; }
-  .page-content { padding: 20px 16px 80px; }
-  .fg2 { grid-template-columns: 1fr; }
-  .fg2 .fgrp.full { grid-column: 1; }
-  .stat-grid { grid-template-columns: 1fr 1fr; }
-  .wchips { grid-template-columns: 1fr; }
-  .we-day-grid { grid-template-columns: 1fr 1fr; }
-  .wview-days { grid-template-columns: 1fr 1fr; }
-  .wview-stats { grid-template-columns: 1fr 1fr; }
-  .kbd-badge { display: none; }
-  .modal-bg { align-items: flex-end; padding: 0; }
-  .modal { border-radius: 12px 12px 0 0; max-height: 92vh; }
-  /* mobile bottom nav */
-  .mobile-nav { display: flex !important; }
-  .dash-main { padding: 20px 16px 100px; }
-  .img-grid { grid-template-columns: 1fr; }
-}
-.mobile-nav {
-  display: none; position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(8,15,21,.92); backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(66,73,80,.15);
-  height: 60px; z-index: 300; justify-content: space-around; align-items: center;
-}
-.mn-item { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; color: var(--outline); transition: color .13s; padding: 0 12px; }
-.mn-item.active { color: var(--primary); }
-.mn-item .icon { font-size: 22px; }
-.mn-item span { font-size: 8px; font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: .05em; }
-</style>
-<link rel="stylesheet" href="assets/premium.css">
-</head>
-<body>
-
-<div id="ambient-bg" class="ambient-root" aria-hidden="true">
-  <div class="ambient-mesh"></div>
-  <div class="ambient-noise"></div>
-  <div class="ambient-vignette"></div>
-</div>
-
-<!-- ═══════════════ LEFT SIDEBAR ═══════════════ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-mark" id="sidebar-logo-mark" onclick="if(document.getElementById('sidebar').classList.contains('collapsed'))toggleSidebar()" title="Expand sidebar">⚕&#xFE0E;</div>
-    <div class="sidebar-logo-text">
-      <div class="sidebar-logo-name">Prof's Corner</div>
-      <div class="sidebar-logo-sub">Trading Journal</div>
-    </div>
-    <div class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar">
-      <span class="icon" id="sidebar-toggle-icon">chevron_left</span>
-    </div>
-  </div>
-
-  <button class="sidebar-new-btn" onclick="showPage('add')">
-    <span class="icon">add</span>
-    <span class="sidebar-new-btn-label">New Entry</span>
-  </button>
-
-  <nav class="sidebar-nav">
-    <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-      <span class="icon">dashboard</span>
-      <span class="nav-item-label">Dashboard <span class="kbd-badge">D</span></span>
-    </div>
-    <div class="nav-item" data-page="weekly" onclick="showPage('weekly')">
-      <span class="icon">calendar_month</span>
-      <span class="nav-item-label">Weekly Plan <span class="kbd-badge">W</span></span>
-    </div>
-    <div class="nav-item" data-page="trades" onclick="showPage('trades')">
-      <span class="icon">list_alt</span>
-      <span class="nav-item-label">All Trades <span class="kbd-badge">T</span></span>
-    </div>
-    <div class="nav-item" data-page="add" onclick="showPage('add')">
-      <span class="icon">edit_note</span>
-      <span class="nav-item-label">Log Trade <span class="kbd-badge">N</span></span>
-    </div>
-    <div class="nav-item" data-page="sharecard" onclick="showPage('sharecard')">
-      <span class="icon">share</span>
-      <span class="nav-item-label">Share Card <span class="kbd-badge">S</span></span>
-    </div>
-  </nav>
-
-  <div class="sidebar-footer">
-    <div class="sidebar-footer-item" onclick="exportData()">
-      <span class="icon sm">download</span>
-      <span class="sidebar-footer-label">Export JSON</span>
-    </div>
-    <div class="sidebar-footer-item" onclick="document.getElementById('import-file').click()">
-      <span class="icon sm">upload</span>
-      <span class="sidebar-footer-label">Import JSON</span>
-      <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none">
-    </div>
-    <div class="sidebar-footer-item" onclick="toggleFocusMode()" title="Equity + live log only">
-      <span class="icon sm">center_focus_strong</span>
-      <span class="sidebar-footer-label">Focus mode</span>
-    </div>
-    <div class="topdate-sidebar" id="top-date"></div>
-  </div>
-</aside>
-
-<!-- ═══════════════ MAIN WRAPPER ═══════════════ -->
-<div class="main-wrap" id="main-wrap">
-
-  <!-- ═══ DASHBOARD ═══ -->
-  <div id="dashboard" class="page active">
-    <!-- LEFT: main content -->
-    <div class="dash-main">
-      <div class="page-header">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <div>
-            <h1 class="page-title font-head">TERMINAL</h1>
-            <p class="page-sub">Performance overview — <span id="top-date-dash" style="font-family:var(--ff-mono);color:var(--primary)"></span></p>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:0">
-            <div class="pstrip" style="margin-bottom:0">
-              <span class="pslbl">Period:</span>
-              <button class="pbtn" data-p="week" onclick="setPeriod('week')">Week</button>
-              <button class="pbtn on" data-p="month" onclick="setPeriod('month')">Month</button>
-              <button class="pbtn" data-p="90d" onclick="setPeriod('90d')">90D</button>
-              <button class="pbtn" data-p="all" onclick="setPeriod('all')">All</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stat Cards -->
-      <div class="stat-grid">
-        <div class="stat-card anim anim-1">
-          <div class="stat-card-label">Win Rate</div>
-          <div class="stat-card-val val-tertiary" id="sv-wr">0%</div>
-          <div class="stat-card-sub" id="sv-wr-s">0W / 0L / 0BE</div>
-        </div>
-        <div class="stat-card anim anim-2">
-          <div class="stat-card-label">Profit Factor</div>
-          <div class="stat-card-val val-primary" id="sv-pf">—</div>
-          <div class="stat-card-sub">gross W ÷ gross L</div>
-        </div>
-        <div class="stat-card anim anim-3" id="card-net">
-          <div class="stat-card-label">Net Return</div>
-          <div class="stat-card-val" id="sv-net">+0.00R</div>
-          <div class="stat-card-sub" id="sv-net-s">0 trades</div>
-          <div class="spark-wrap"><canvas id="spark-net"></canvas></div>
-        </div>
-        <div class="stat-card anim anim-4">
-          <div class="stat-card-label">Avg RR — Winners</div>
-          <div class="stat-card-val" id="sv-rr">0.00R</div>
-          <div class="stat-card-sub" id="sv-ct-s">0 trading days</div>
-        </div>
-      </div>
-
-      <!-- The Bento Grid (Rows 1-7) -->
-      <div class="bento-grid anim anim-5" id="bento-wrapper">
-        
-        <!-- R1 -->
-        <div class="bento-card full">
-          <div class="bento-head"><span class="bento-title">Total Equity Curve</span></div>
-          <div class="bento-body"><div class="bento-chart on"><canvas id="c-equity"></canvas></div></div>
-        </div>
-
-        <!-- R2 -->
-        <div class="bento-card">
-          <div class="bento-head"><span class="bento-title">Drawdown Waterfall</span></div>
-          <div class="bento-body"><div class="bento-chart on"><canvas id="c-drawdown"></canvas></div></div>
-        </div>
-        <div class="bento-card">
-          <div class="bento-head"><span class="bento-title">Rolling Winrate (20T)</span></div>
-          <div class="bento-body"><div class="bento-chart on"><canvas id="c-rolling"></canvas></div></div>
-        </div>
-
-        <!-- R3 (Switchable) -->
-        <div class="bento-card reveal">
-          <div class="bento-head">
-            <span class="bento-title">Time Performance</span>
-            <div class="win-toggles">
-              <button class="win-btn on" onclick="switchBento('r3_left', 'monthly', event)">Mo</button>
-              <button class="win-btn" onclick="switchBento('r3_left', 'weekday', event)">Day</button>
-            </div>
-          </div>
-          <div class="bento-body">
-            <div class="bento-chart on" data-bento="r3_left_monthly"><canvas id="c-monthly"></canvas></div>
-            <div class="bento-chart" data-bento="r3_left_weekday"><canvas id="c-weekday"></canvas></div>
-          </div>
-        </div>
-        <div class="bento-card reveal">
-          <div class="bento-head">
-            <span class="bento-title">Model & Session Dist</span>
-            <div class="win-toggles">
-              <button class="win-btn on" onclick="switchBento('r3_right', 'models', event)">Models</button>
-              <button class="win-btn" onclick="switchBento('r3_right', 'sess', event)">Sess</button>
-            </div>
-          </div>
-          <div class="bento-body">
-            <div class="bento-chart on" data-bento="r3_right_models"><canvas id="c-models"></canvas></div>
-            <div class="bento-chart" data-bento="r3_right_sess"><canvas id="c-sessions"></canvas></div>
-          </div>
-        </div>
-
-        <!-- R4 (Switchable) -->
-        <div class="bento-card reveal">
-          <div class="bento-head">
-            <span class="bento-title">Expectancy Stats</span>
-            <div class="win-toggles">
-              <button class="win-btn on" onclick="switchBento('r4_left', 'streak', event)">Streaks</button>
-              <button class="win-btn" onclick="switchBento('r4_left', 'dist', event)">W/L Split</button>
-            </div>
-          </div>
-          <div class="bento-body">
-            <div class="bento-chart on" data-bento="r4_left_streak"><canvas id="c-streak"></canvas></div>
-            <div class="bento-chart" data-bento="r4_left_dist"><canvas id="c-dist"></canvas></div>
-          </div>
-          <div id="streak-drill-panel" class="streak-drill-panel" hidden></div>
-        </div>
-        <div class="bento-card reveal">
-          <div class="bento-head">
-            <span class="bento-title">Alpha & Strategies</span>
-            <div class="win-toggles">
-              <button class="win-btn on" onclick="switchBento('r4_right', 'alpha', event)">Alpha</button>
-              <button class="win-btn" onclick="switchBento('r4_right', 'sweet', event)">Sweet Spot</button>
-            </div>
-          </div>
-          <div class="bento-body">
-            <div class="bento-chart on" data-bento="r4_right_alpha"><canvas id="c-alpha"></canvas></div>
-            <div class="bento-chart" data-bento="r4_right_sweet"><canvas id="c-sweet"></canvas></div>
-          </div>
-        </div>
-
-        <!-- R5 (Full) -->
-        <div class="bento-card full reveal bento-card--heatmap">
-          <div class="bento-head"><span class="bento-title">Asset Heatmap Matrix</span></div>
-          <div class="bento-body bento-body--heatmap">
-            <div class="bento-chart on bento-chart--heatmap"><div class="hmap-scroll" id="hmap-container"></div></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- RIGHT: Evaluation sidebar -->
-    <div class="dash-right">
-      <div class="eval-heading">
-        <span class="eval-pulse"></span>
-        Evaluation Phase
-      </div>
-
-      <div class="eval-row"><span class="eval-key">Total Trades (month)</span><span class="eval-val c" id="ev-total">0</span></div>
-      <div class="eval-row"><span class="eval-key">Avg Profit / Day</span><span class="eval-val w" id="ev-apd">0.00R</span></div>
-      <div class="eval-row"><span class="eval-key">Winner of Month</span><span class="eval-val w" id="ev-best">—</span></div>
-      <div class="eval-row"><span class="eval-key">Avg RR (Winners)</span><span class="eval-val r" id="ev-rr">0.00R</span></div>
-      <div class="eval-row"><span class="eval-key">Max Drawdown</span><span class="eval-val l" id="ev-dd">0.00R</span></div>
-      <div class="eval-row"><span class="eval-key">Top Model</span><span class="eval-val p" id="ev-model">—</span></div>
-      <div class="eval-row"><span class="eval-key">Streak</span><div class="sdots" id="ev-streak"></div></div>
-
-      <div class="exec-log-head">Recent Executions</div>
-      <div id="exec-log-list">
-        <div class="empty" style="padding:30px 0"><span style="font-size:20px;display:block;margin-bottom:8px;opacity:.15">📋</span>No trades yet</div>
-      </div>
-
-      <div class="cal-sidebar" id="cal-sidebar">
-        <button type="button" class="cal-sidebar-toggle" onclick="toggleCalendarSidebar()" aria-expanded="true" aria-controls="cal-sidebar-inner" id="cal-sidebar-toggle-btn">
-          <span class="icon">calendar_month</span>
-          <span class="cal-sidebar-toggle-label">Profit calendar</span>
-          <span class="icon cal-sidebar-chevron" aria-hidden="true">expand_less</span>
-        </button>
-        <div class="cal-sidebar-inner" id="cal-sidebar-inner">
-          <div class="cal-sidebar-nav">
-            <button type="button" class="calbtn" onclick="calPrev()" aria-label="Previous month">&#8249;</button>
-            <span class="calmn" id="cal-lbl">—</span>
-            <button type="button" class="calbtn" onclick="calNext()" aria-label="Next month">&#8250;</button>
-          </div>
-          <div class="calg7 cal-compact" id="cal-dows"></div>
-          <div class="calg7 cal-compact" id="cal-days"></div>
-        </div>
-      </div>
-    </div>
-  </div><!-- /dashboard -->
-
-  <!-- ═══ WEEKLY PLAN ═══ -->
-  <div id="weekly" class="page">
-    <div class="page-content">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div>
-          <h1 class="page-title font-head">WEEKLY PLAN</h1>
-          <p class="page-sub">Market outlook, key levels, daily bias</p>
-        </div>
-        <button class="btn btn-primary" onclick="openNewWeek()">
-          <span class="icon sm">add</span> New Week
-        </button>
-      </div>
-
-      <!-- Editor -->
-      <div id="weditor" class="weditor">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
-          <div style="font-family:var(--ff-head);font-size:14px;font-weight:800;color:var(--primary)">
-            <span class="icon sm" style="vertical-align:middle;margin-right:6px">edit</span>Week Plan Editor
-          </div>
-          <button class="btn-danger btn" id="we-del-btn" style="display:none" onclick="deleteWeek()">Delete</button>
-        </div>
-        <div class="fg2" style="max-width:440px;margin-bottom:18px">
-          <div class="fgrp"><label class="flbl">Week Start</label><input type="date" id="we-start"></div>
-          <div class="fgrp"><label class="flbl">Week End</label><input type="date" id="we-end"></div>
-        </div>
-        <div style="margin-bottom:14px">
-          <label class="flbl" style="display:block;margin-bottom:6px">🌐 Market Outlook</label>
-          <textarea id="we-outlook" rows="2" placeholder="Overall market bias for the week..."></textarea>
-        </div>
-        <div style="margin-bottom:14px">
-          <label class="flbl" style="display:block;margin-bottom:6px">📍 Key Levels</label>
-          <textarea id="we-keylevels" rows="6" placeholder="— VWAPs:&#10;• ...&#10;&#10;— TPOs:&#10;• ...&#10;&#10;— VP Ranges / nPOCs:&#10;• ..."></textarea>
-        </div>
-        <div style="margin-bottom:14px">
-          <label class="flbl" style="display:block;margin-bottom:6px">📊 Chart Screenshots — <kbd>Ctrl+V</kbd> paste or browse</label>
-          <div class="imgzone" id="we-drop" onclick="document.getElementById('we-file').click()" style="aspect-ratio:unset;padding:18px">
-            <span class="icon lg">add_photo_alternate</span>
-            <div class="imgzone-txt">Click, drag & drop, or paste from clipboard</div>
-            <input type="file" id="we-file" accept="image/*" multiple onchange="handleImgInput('we',event)">
-          </div>
-          <div class="imgprevs" id="we-prevs"></div>
-        </div>
-        <div style="margin-bottom:14px">
-          <label class="flbl" style="display:block;margin-bottom:8px">📅 Daily Bias</label>
-          <div class="we-day-grid">
-            <div><div class="we-day-lbl">Monday</div><textarea id="we-mon" rows="3" placeholder="Bias..."></textarea></div>
-            <div><div class="we-day-lbl">Tuesday</div><textarea id="we-tue" rows="3" placeholder="Bias..."></textarea></div>
-            <div><div class="we-day-lbl">Wednesday</div><textarea id="we-wed" rows="3" placeholder="Bias..."></textarea></div>
-            <div><div class="we-day-lbl">Thursday</div><textarea id="we-thu" rows="3" placeholder="Bias..."></textarea></div>
-            <div><div class="we-day-lbl">Friday</div><textarea id="we-fri" rows="3" placeholder="Bias..."></textarea></div>
-          </div>
-        </div>
-        <div style="margin-bottom:14px">
-          <label class="flbl" style="display:block;margin-bottom:6px">🏆 Previous Week Performance</label>
-          <textarea id="we-prev" rows="2" placeholder="How did last week go? Lessons learned..."></textarea>
-        </div>
-        <div style="display:flex;gap:10px;padding-top:18px;border-top:1px solid rgba(66,73,80,.1);margin-top:4px">
-          <button class="btn btn-primary" onclick="saveWeek()">Save Week</button>
-          <button class="btn btn-ghost" onclick="closeWeekEditor()">Cancel</button>
-        </div>
-      </div>
-
-      <div class="wchips" id="week-chips">
-        <div class="empty"><span class="empty-ico">📋</span>No weekly plans yet. Click "New Week" to start.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ ALL TRADES ═══ -->
-  <div id="trades" class="page">
-    <div class="page-content">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div>
-          <h1 class="page-title font-head">EXECUTION HISTORY</h1>
-          <p class="page-sub" id="tbl-count">0 trades logged</p>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-xs c" onclick="exportData()">⬇ Export</button>
-          <label class="btn-xs" style="cursor:pointer">⬆ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
-        </div>
-      </div>
-      <div class="section-card" style="overflow:hidden">
-        <!-- Filter Bar -->
-        <div class="fbar">
-          <span class="fbar-lbl">Outcome:</span>
-          <button class="ftag on" data-f="outcome" data-v="all"       onclick="setFilter('outcome','all',this)">All</button>
-          <button class="ftag"    data-f="outcome" data-v="Win"       onclick="setFilter('outcome','Win',this)">Win</button>
-          <button class="ftag"    data-f="outcome" data-v="Loss"      onclick="setFilter('outcome','Loss',this)">Loss</button>
-          <button class="ftag"    data-f="outcome" data-v="Breakeven" onclick="setFilter('outcome','Breakeven',this)">BE</button>
-          <div class="fsep"></div>
-          <span class="fbar-lbl">Session:</span>
-          <button class="ftag on" data-f="sess" data-v="all"    onclick="setFilter('sess','all',this)">All</button>
-          <button class="ftag"    data-f="sess" data-v="London" onclick="setFilter('sess','London',this)">London</button>
-          <button class="ftag"    data-f="sess" data-v="NY"     onclick="setFilter('sess','NY',this)">NY</button>
-          <button class="ftag"    data-f="sess" data-v="Asia"   onclick="setFilter('sess','Asia',this)">Asia</button>
-          <div class="fsep"></div>
-          <input class="fsearch" id="model-search" placeholder="Search pair / model…" oninput="scheduleRenderTradesTable()">
-          <span class="fcount" id="fbar-count"></span>
-        </div>
-        <div id="trades-body">
-          <div class="empty"><span class="empty-ico">📋</span>No trades logged yet.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ ADD TRADE ═══ -->
-  <div id="add" class="page">
-    <div class="page-content" style="max-width:1100px">
-      <div class="page-header">
-        <h1 class="page-title font-head">NEW EXECUTION LOG</h1>
-        <p class="page-sub">Input precise trade parameters for performance quantization.</p>
-      </div>
-
-      <div class="fg2" style="gap:20px;margin-bottom:20px">
-        <!-- LEFT COL -->
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <!-- Market Parameters -->
-          <div class="form-section accent-primary">
-            <div class="form-section-head">
-              <span class="icon form-section-icon">analytics</span>
-              <span class="form-section-title">Market Parameters</span>
-            </div>
-            <div class="fg2">
-              <div class="fgrp"><label class="flbl">Trade Date</label><input type="date" id="f-date"></div>
-              <div class="fgrp"><label class="flbl">Asset Symbol</label><input type="text" id="f-pair" placeholder="BTCUSDT, NQ1!…"></div>
-              <div class="fgrp">
-                <label class="flbl">Direction</label>
-                <div class="seg">
-                  <button class="segbtn on w" data-sg="dir" data-v="Long"  onclick="setSeg(this,'dir')">LONG</button>
-                  <button class="segbtn"      data-sg="dir" data-v="Short" onclick="setSeg(this,'dir')">SHORT</button>
-                </div>
-              </div>
-              <div class="fgrp">
-                <label class="flbl">Session</label>
-                <div class="seg">
-                  <button class="segbtn"      data-sg="sess" data-v="Asia"   onclick="setSeg(this,'sess')">Asia</button>
-                  <button class="segbtn on c" data-sg="sess" data-v="London" onclick="setSeg(this,'sess')">London</button>
-                  <button class="segbtn"      data-sg="sess" data-v="NY"     onclick="setSeg(this,'sess')">NY</button>
-                  <button class="segbtn"      data-sg="sess" data-v="Other"  onclick="setSeg(this,'sess')">Other</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Narrative Context -->
-          <div class="form-section accent-dim">
-            <div class="form-section-head">
-              <span class="icon form-section-icon" style="color:var(--on-surface-var)">psychology</span>
-              <span class="form-section-title" style="color:var(--on-surface)">Narrative Context</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:14px">
-              <div class="fgrp">
-                <label class="flbl">HTF Bias Alignment</label>
-                <div class="seg">
-                  <button class="segbtn on c" data-sg="bias" data-v="Aligned"     onclick="setSeg(this,'bias')">Confluent</button>
-                  <button class="segbtn"      data-sg="bias" data-v="Partial"     onclick="setSeg(this,'bias')">Neutral</button>
-                  <button class="segbtn"      data-sg="bias" data-v="Not Aligned" onclick="setSeg(this,'bias')">Counter</button>
-                </div>
-              </div>
-              <div class="fgrp">
-                <label class="flbl">Emotions / Psychological State</label>
-                <textarea id="f-emo" rows="3" placeholder="Describe emotional stability, hesitation, FOMO, focus level…"></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT COL -->
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <!-- Outcome Metrics -->
-          <div class="form-section" style="background:var(--surface-low)">
-            <div class="form-section-head">
-              <span class="icon form-section-icon" style="color:var(--tertiary)">military_tech</span>
-              <span class="form-section-title">Outcome Metrics</span>
-            </div>
-            <div class="fg2" style="margin-bottom:16px">
-              <div class="fgrp"><label class="flbl">Risk / Reward</label><input type="number" id="f-rr" placeholder="e.g. 2.5 or -1" step="0.1"></div>
-              <div class="fgrp">
-                <label class="flbl">Model / Setup</label>
-                <select id="f-model">
-                  <option value="">— Select model —</option>
-                </select>
-              </div>
-            </div>
-            <div class="fgrp">
-              <label class="flbl">Trade Result</label>
-              <div class="seg">
-                <button class="segbtn on w" data-sg="out" data-v="Win"       onclick="setSeg(this,'out')">WIN</button>
-                <button class="segbtn"      data-sg="out" data-v="Loss"      onclick="setSeg(this,'out')">LOSS</button>
-                <button class="segbtn"      data-sg="out" data-v="Breakeven" onclick="setSeg(this,'out')">B/E</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Execution Model -->
-          <div class="form-section accent-dim">
-            <div class="form-section-head">
-              <span class="icon form-section-icon" style="color:var(--on-surface-var)">description</span>
-              <span class="form-section-title" style="color:var(--on-surface)">Execution Notes</span>
-            </div>
-            <div class="fgrp">
-              <label class="flbl">Post-Trade Analysis</label>
-              <textarea id="f-exec" rows="5" placeholder="Technical breakdown — confluences, VAH/VAL references, fib levels, entry rationale…"></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Technical Evidence — full width -->
-      <div class="form-section" style="background:var(--surface-low);margin-bottom:20px">
-        <div class="form-section-head">
-          <span class="icon form-section-icon" style="color:var(--on-surface-var)">photo_library</span>
-          <span class="form-section-title" style="color:var(--on-surface)">Technical Evidence</span>
-          <span style="margin-left:auto;font-size:9px;color:var(--outline);font-family:var(--ff-mono)">paste <kbd>Ctrl+V</kbd> or browse — max 5</span>
-        </div>
-        <div class="img-grid" id="f-drop-zone">
-          <div class="imgzone" id="f-drop" onclick="document.getElementById('f-imgs').click()">
-            <span class="icon lg">add_photo_alternate</span>
-            <div class="imgzone-txt">Upload Chart</div>
-            <input type="file" id="f-imgs" accept="image/*" multiple onchange="handleImgInput('trade',event)">
-          </div>
-          <div class="imgzone" id="f-drop2" onclick="document.getElementById('f-imgs2').click()">
-            <span class="icon lg">add_photo_alternate</span>
-            <div class="imgzone-txt">Upload Chart</div>
-            <input type="file" id="f-imgs2" accept="image/*" multiple onchange="handleImgInput('trade',event)">
-          </div>
-        </div>
-        <div class="imgprevs" id="f-prevs"></div>
-      </div>
-
-      <!-- Actions -->
-      <div style="display:flex;align-items:center;gap:14px;justify-content:flex-end;padding-top:8px;border-top:1px solid rgba(66,73,80,.1)">
-        <button class="btn btn-ghost" onclick="showPage('dashboard')">Discard</button>
-        <button class="btn btn-primary" style="font-size:12px;padding:13px 36px" onclick="addTrade()">
-          <span class="icon sm">check</span> Log Trade &amp; Commit
-        </button>
-      </div>
-    </div>
-
-    <!-- Manage Models — only on Log Trade page (hidden when other pages are active) -->
-    <button class="mgr-fab" id="mgr-fab" onclick="openModelMgr()">
-      <span class="icon">tune</span>
-      Manage Models
-    </button>
-    <div class="mgr-modal-bg" id="mgr-modal-bg" onclick="if(event.target===this)closeModelMgr()">
-      <div class="mgr-modal">
-        <div class="mgr-modal-title">
-          <span>⚙&nbsp; Manage Models</span>
-          <button class="mgr-modal-x" onclick="closeModelMgr()">✕</button>
-        </div>
-        <div class="model-mgr-list" id="model-tag-list"></div>
-        <div class="model-add-row" style="margin-top:8px">
-          <input class="model-add-input" id="model-new-input" placeholder="New model name…"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addNewModel();}">
-          <button class="model-add-btn" onclick="addNewModel()">+ Add</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ SHARE CARD ═══ -->
-  <div id="sharecard" class="page">
-    <div class="page-content">
-      <div class="page-header">
-        <h1 class="page-title font-head">SHARE CARD</h1>
-        <p class="page-sub">Generate a shareable performance card — download as PNG</p>
-      </div>
-      <div class="sc-wrap">
-        <div style="display:flex;gap:6px;margin-bottom:14px">
-          <button type="button" class="sc-pbtn"        onclick="setCardPeriod('daily')">Daily</button>
-          <button type="button" class="sc-pbtn"        onclick="setCardPeriod('weekly')">Weekly</button>
-          <button type="button" class="sc-pbtn active" onclick="setCardPeriod('monthly')">Monthly</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-          <label for="pnl-bg-select-sc" style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--outline);font-family:var(--ff-mono);cursor:pointer;margin:0">PnL backdrop</label>
-          <select id="pnl-bg-select-sc" class="pnl-bg-select" title="Optional image behind the card (preview). PNG export uses the same theme when the image loads." style="max-width:200px">
-            <option value="">None</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
-          <span style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--outline);font-family:var(--ff-mono)">Accent</span>
-          <div class="ac-chip sel" style="background:#99f7ff" onclick="setAccent('#99f7ff','rgba(153,247,255,.07)',this)"></div>
-          <div class="ac-chip"     style="background:#afffd1" onclick="setAccent('#afffd1','rgba(175,255,209,.07)',this)"></div>
-          <div class="ac-chip"     style="background:#f0b429" onclick="setAccent('#f0b429','rgba(240,180,41,.07)',this)"></div>
-          <div class="ac-chip"     style="background:#c084fc" onclick="setAccent('#c084fc','rgba(192,132,252,.07)',this)"></div>
-          <div class="ac-chip"     style="background:#ff716c" onclick="setAccent('#ff716c','rgba(255,113,108,.07)',this)"></div>
-          <div class="ac-chip"     style="background:#eef4fd" onclick="setAccent('#eef4fd','rgba(238,244,253,.04)',this)"></div>
-        </div>
-        <div id="sc-el" class="sc-card">
-          <div class="sc-card-pnl-bg" aria-hidden="true"></div>
-          <div class="sc-card-texture"></div>
-          <div id="sc-empty" style="display:none;text-align:center;padding:50px;color:var(--outline);font-family:var(--ff-mono);font-size:10px">
-            <div style="font-size:22px;margin-bottom:10px;opacity:.15">📊</div>No trades for this period
-          </div>
-          <div id="sc-content"></div>
-        </div>
-        <button type="button" class="dl-btn" onclick="runDownloadCard()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Save as Image
-        </button>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /main-wrap -->
-
-<!-- Mobile bottom nav -->
-<nav class="mobile-nav">
-  <div class="mn-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="icon">dashboard</span><span>Dash</span></div>
-  <div class="mn-item" data-page="weekly" onclick="showPage('weekly')"><span class="icon">calendar_month</span><span>Plan</span></div>
-  <div class="mn-item" data-page="trades" onclick="showPage('trades')"><span class="icon">list_alt</span><span>Trades</span></div>
-  <div class="mn-item" data-page="add" onclick="showPage('add')"><span class="icon">edit_note</span><span>Log</span></div>
-  <div class="mn-item" data-page="sharecard" onclick="showPage('sharecard')"><span class="icon">share</span><span>Card</span></div>
-</nav>
-
-
-<!-- ═══ WEEK VIEW OVERLAY ═══ -->
-<div class="wview-bg" id="wview-bg" onclick="closeWeekView(event)">
-  <div class="wview" id="wview-panel">
-    <div class="wview-head">
-      <span style="font-family:var(--ff-head);font-size:13px;font-weight:800" id="wv-title">Week Plan</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-primary" id="wv-edit-btn" onclick="wviewToEdit()" style="padding:7px 16px;font-size:9px">Edit Week</button>
-        <button class="modal-x" onclick="closeWeekView(null)">✕</button>
-      </div>
-    </div>
-    <div class="wview-body">
-      <div class="wview-stats" id="wv-stats"></div>
-      <div class="wview-sec" id="wv-outlook-sec">
-        <span class="wview-sec-lbl">🌐 Market Outlook</span>
-        <div class="wview-sec-val" id="wv-outlook"></div>
-      </div>
-      <div class="wview-sec" id="wv-kl-sec">
-        <span class="wview-sec-lbl">📍 Key Levels</span>
-        <div class="wview-sec-val" id="wv-kl"></div>
-      </div>
-      <div class="wview-sec">
-        <span class="wview-sec-lbl">📅 Daily Bias</span>
-        <div class="wview-days" id="wv-days"></div>
-      </div>
-      <div class="wview-sec" id="wv-charts-sec">
-        <span class="wview-sec-lbl">📊 Charts</span>
-        <div class="wview-charts" id="wv-charts"></div>
-      </div>
-      <div class="wview-sec" id="wv-prev-sec">
-        <span class="wview-sec-lbl">🏆 Previous Week Performance</span>
-        <div class="wview-sec-val" id="wv-prev"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Calendar Side Panel (Drill-Down) -->
-<div class="day-panel-bg" id="day-panel-bg" onclick="closeDayPanel(event)">
-  <div class="day-panel" id="day-panel">
-    <div class="day-panel-head">
-      <span class="day-panel-date" id="day-panel-date">—</span>
-      <button class="modal-x" onclick="closeDayPanel(null)">✕</button>
-    </div>
-    <div id="day-panel-body" class="day-panel-body"></div>
-  </div>
-</div>
-
-<!-- Custom Confirm Dialog -->
-<div class="confirm-bg" id="confirm-bg">
-  <div class="confirm-box">
-    <div class="confirm-msg" id="confirm-msg">Are you sure?</div>
-    <div class="confirm-actions">
-      <button class="btn btn-ghost" style="padding:8px 18px;font-size:9px" onclick="confirmReject()">Cancel</button>
-      <button class="btn btn-primary" style="padding:8px 18px;font-size:9px" id="confirm-ok-btn" onclick="confirmAccept()">Confirm</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast & Lightbox -->
-<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">Saved ✓</div>
-<div class="lb" id="lb" onclick="closeLB()" role="dialog" aria-modal="true" aria-label="Image preview">
-  <button type="button" class="lb-x" onclick="event.stopPropagation();closeLB()" aria-label="Close preview">✕</button>
-  <img id="lb-img" src="" alt="Attachment preview">
-</div>
-
-<!-- Sync Server Client Injector -->
-<script>
-  try {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'http://127.0.0.1:8021/sync-client.js', false);
-    xhr.send(null);
-    if (xhr.status === 200) eval(xhr.responseText);
-  } catch(e) { console.log('Local sync server offline. Falling back to localStorage.'); }
-</script>
-
-<script>
 // ─── CONSTANTS ───────────────────────────────
-// @ts-ignore: IDE-only warning due to shared global scope across files
 const TK = 'profsCorner_v1_trades';
-// @ts-ignore
 const WK = 'profsCorner_v1_weeks';
-// @ts-ignore
 const MK = 'profsCorner_v1_models';
-// @ts-ignore
 const PNL_BG_KEY = 'profsCorner_sharePnlBg';
-// @ts-ignore
 const PNL_BG_LEGACY_KEY = 'profsCorner_statPnlBg';
 
-// @ts-ignore
-const SEED_KEY = 'profsCorner_v1_seeded';
-
-// @ts-ignore
-const DEFAULT_MODELS = ['AMT','OB','FVG','CISD','CVA Reentry','Liquidity Sweep','BOS','MS Break','Reentry','Orderflow','Price Action'];
-
-// @ts-ignore
 const IS_ELECTRON = typeof window.journalDB !== 'undefined';
 
 function getPnlBgStoredEncoded() {
@@ -1854,15 +15,6 @@ function getPnlBgStoredEncoded() {
   try {
     return localStorage.getItem(PNL_BG_KEY) || localStorage.getItem(PNL_BG_LEGACY_KEY) || '';
   } catch (e) { return ''; }
-}
-
-function setPnlBgStoredEncoded(value) {
-  if (IS_ELECTRON) {
-    window.journalDBPnlBg = value;
-    window.journalDB.setSetting(PNL_BG_KEY, value);
-    return;
-  }
-  try { localStorage.setItem(PNL_BG_KEY, value); } catch (e) {}
 }
 
 function pnlBackdropUrlFromRelPath(relPath) {
@@ -1923,11 +75,12 @@ async function loadBackdropForExport(relPath) {
     return null;
   }
 }
-
+const SEED_KEY = 'profsCorner_v1_seeded';
+const DEFAULT_MODELS = ['AMT','OB','FVG','CISD','CVA Reentry','Liquidity Sweep','BOS','MS Break','Reentry','Orderflow','Price Action'];
 
 /** Debug: ?debug=1 or localStorage profsCorner_debug = "1" */
 /** Perf: ?perf=1 or localStorage profsCorner_perf = "1" — skips stat-card hover FX, lowers canvas DPR, disables ambient parallax. */
-;(function () {
+(function () {
   var q = typeof location !== 'undefined' && /[?&]debug=1(?:&|$)/.test(location.search);
   var ls = false;
   try { ls = localStorage.getItem('profsCorner_debug') === '1'; } catch (e) {}
@@ -1979,8 +132,9 @@ function scheduleChartResize() {
   }, 160);
 }
 
-/** Debounce trades table rebuild while typing search */
 function scheduleRenderTradesTable() {
+  const ms = document.getElementById('model-search');
+  if (ms) try { sessionStorage.setItem('pc_search', ms.value); } catch {}
   if (window.__rtDebounce) clearTimeout(window.__rtDebounce);
   window.__rtDebounce = setTimeout(() => {
     window.__rtDebounce = null;
@@ -2048,9 +202,7 @@ async function saveTrades() {
       for (const trade of trades) {
         await window.journalDB.saveTrade(trade);
       }
-    } catch (e) {
-      console.error('Error saving trades:', e);
-    }
+    } catch (e) { console.error('Error saving trades:', e); }
   } else {
     try { localStorage.setItem(TK, JSON.stringify(trades)); }
     catch { alert('Storage error — consider removing chart images from old trades.'); }
@@ -2063,9 +215,7 @@ async function saveWeeks() {
       for (const week of weeks) {
         await window.journalDB.saveWeek(week);
       }
-    } catch (e) {
-      console.error('Error saving weeks:', e);
-    }
+    } catch (e) { console.error('Error saving weeks:', e); }
   } else {
     try { localStorage.setItem(WK, JSON.stringify(weeks)); }
     catch { alert('Storage error.'); }
@@ -2074,11 +224,8 @@ async function saveWeeks() {
 
 async function saveModels() {
   if (IS_ELECTRON) {
-    try {
-      await window.journalDB.saveModels(models);
-    } catch (e) {
-      console.error('Error saving models:', e);
-    }
+    try { await window.journalDB.saveModels(models); }
+    catch (e) { console.error('Error saving models:', e); }
   } else {
     try { localStorage.setItem(MK, JSON.stringify(models)); }
     catch { /* non-critical */ }
@@ -2137,7 +284,15 @@ function closeModelMgr() {
 // ─── NAVIGATION ───────────────────────────────
 function showPage(id) {
   closeCalPop();
-  if (id !== 'add') closeModelMgr();
+  if (id !== 'add') {
+    closeModelMgr();
+    const pb = document.getElementById('log-preview-bar');
+    if (pb) pb.classList.remove('visible');
+  }
+  if (id !== 'trades') {
+    const strip = document.getElementById('fstat-strip');
+    if (strip) strip.classList.remove('visible');
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   // Sidebar items
@@ -2156,7 +311,7 @@ function showPage(id) {
     const dash = document.getElementById('dashboard');
     if (dash) dash.classList.remove('focus-mode');
   }
-  if (id === 'trades')    renderTradesTable();
+  if (id === 'trades')    { restoreFilters(); renderTradesTable(); }
   if (id === 'weekly')    renderWeeklyPlan();
   if (id === 'sharecard') renderShareCard();
 }
@@ -2372,6 +527,107 @@ function isDashboardActive() {
   return !!(el && el.classList.contains('active'));
 }
 
+// ─── FEATURE 5: Period-over-period delta badges ───────────────────────────
+function getPrevPeriodArr(p) {
+  const now = new Date();
+  if (p === 'month') {
+    const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const mo = d.toISOString().slice(0, 7);
+    return trades.filter(t => t.date.startsWith(mo));
+  }
+  if (p === 'week') {
+    const dow = now.getDay(), diff = dow === 0 ? -6 : 1 - dow;
+    const thisMon = new Date(now); thisMon.setDate(now.getDate() + diff);
+    const prevSun = new Date(thisMon); prevSun.setDate(thisMon.getDate() - 1);
+    const prevMon = new Date(prevSun); prevMon.setDate(prevSun.getDate() - 6);
+    return trades.filter(t => t.date >= prevMon.toISOString().slice(0,10) && t.date <= prevSun.toISOString().slice(0,10));
+  }
+  if (p === '90d') {
+    const from = new Date(now); from.setDate(from.getDate() - 180);
+    const to   = new Date(now); to.setDate(to.getDate() - 90);
+    return trades.filter(t => t.date >= from.toISOString().slice(0,10) && t.date <= to.toISOString().slice(0,10));
+  }
+  return []; // 'all' — no meaningful prior period
+}
+
+function setDeltaBadge(id, cur, prev, fmt) {
+  const el = document.getElementById(id); if (!el) return;
+  if (prev === null || prev === undefined) { el.className = 'stat-delta flat'; el.textContent = ''; return; }
+  const diff = cur - prev;
+  if (Math.abs(diff) < 0.005) { el.className = 'stat-delta flat'; el.textContent = '—'; return; }
+  const up = diff > 0;
+  el.className = 'stat-delta ' + (up ? 'up' : 'down');
+  el.textContent = (up ? '+' : '') + fmt(diff);
+}
+
+function renderStatDeltas(s, p) {
+  if (p === 'all') {
+    ['delta-wr','delta-pf','delta-net','delta-rr'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '';
+    });
+    return;
+  }
+  const prevArr = getPrevPeriodArr(p);
+  if (!prevArr.length) {
+    ['delta-wr','delta-pf','delta-net','delta-rr'].forEach(id => {
+      const el = document.getElementById(id); if (el) { el.className='stat-delta flat'; el.textContent='no prior data'; }
+    });
+    return;
+  }
+  const ps = calcStats(prevArr);
+  setDeltaBadge('delta-wr',  s.wr,   ps.wr,   v => v.toFixed(0) + 'pp');
+  setDeltaBadge('delta-pf',  s.pf !== null ? s.pf : 0, ps.pf !== null ? ps.pf : 0, v => v.toFixed(2));
+  setDeltaBadge('delta-net', s.net,  ps.net,  v => (v >= 0 ? '+' : '') + v.toFixed(2) + 'R');
+  setDeltaBadge('delta-rr',  s.avgW, ps.avgW, v => (v >= 0 ? '+' : '') + v.toFixed(2) + 'R');
+}
+
+// ─── FEATURE 2: Live log preview ─────────────────────────────────────────────
+let __logPreviewRaf = null;
+function scheduleLogPreview() {
+  if (__logPreviewRaf) cancelAnimationFrame(__logPreviewRaf);
+  __logPreviewRaf = requestAnimationFrame(() => {
+    __logPreviewRaf = null;
+    logPreviewUpdate();
+  });
+}
+
+function logPreviewUpdate() {
+  const bar = document.getElementById('log-preview-bar'); if (!bar) return;
+  const date  = document.getElementById('f-date')?.value;
+  const pair  = document.getElementById('f-pair')?.value.trim();
+  const rrRaw = parseFloat(document.getElementById('f-rr')?.value);
+  const out   = segState.out;
+
+  // Only show preview when date + pair + valid rr all filled
+  if (!date || !pair || isNaN(rrRaw)) { bar.classList.remove('visible'); return; }
+
+  const rr = Math.abs(rrRaw);
+  // Build hypothetical trades array including this pending trade
+  const todayIso = new Date().toISOString().slice(0,7);
+  const monthTrades = trades.filter(t => t.date.startsWith(todayIso));
+  const hypothetical = [...monthTrades, { id: '__preview__', date, pair, rr, outcome: out, sess: segState.sess, model: '' }];
+  const cur = calcStats(monthTrades);
+  const hyp = calcStats(hypothetical);
+
+  const wrEl  = document.getElementById('lp-wr');
+  const netEl = document.getElementById('lp-net');
+  const ctEl  = document.getElementById('lp-ct');
+  const pfEl  = document.getElementById('lp-pf');
+
+  if (wrEl) {
+    wrEl.textContent = hyp.wr.toFixed(0) + '%';
+    wrEl.className = 'log-preview-val ' + (hyp.wr >= 50 ? 'val-tertiary' : 'val-error');
+  }
+  if (netEl) {
+    netEl.textContent = fmt(hyp.net);
+    netEl.className = 'log-preview-val ' + (hyp.net > 0 ? 'val-tertiary' : hyp.net < 0 ? 'val-error' : 'val-default');
+  }
+  if (ctEl) ctEl.textContent = hypothetical.length + ' trades';
+  if (pfEl) pfEl.textContent = hyp.pf !== null ? hyp.pf.toFixed(2) : '∞';
+
+  bar.classList.add('visible');
+}
+
 // ─── RENDER DASHBOARD ─────────────────────────
 function renderDashboard() {
   if (!isDashboardActive()) return;
@@ -2401,6 +657,9 @@ function renderDashboard() {
 
   animateNumber('sv-rr', s.avgW, v => fmtR(v));
   set('sv-ct-s', `${s.days.length} trading days`);
+
+  // Feature 5: period-over-period delta badges
+  renderStatDeltas(s, period);
 
   // Phase 6: Dynamic Background & Sparklines
   const cardNet = document.getElementById('card-net');
@@ -2525,12 +784,7 @@ function toggleFocusMode() {
   if (!dash) return;
   if (!dash.classList.contains('active')) showPage('dashboard');
   dash.classList.toggle('focus-mode');
-  const isFocus = dash.classList.contains('focus-mode');
-  if (IS_ELECTRON) {
-    window.journalDB.setSetting('profsCorner_focus', isFocus ? '1' : '0');
-  } else {
-    try { localStorage.setItem('profsCorner_focus', isFocus ? '1' : '0'); } catch {}
-  }
+  try { localStorage.setItem('profsCorner_focus', dash.classList.contains('focus-mode') ? '1' : '0'); } catch {}
 }
 
 function streakTradeBuckets(arr) {
@@ -2726,6 +980,32 @@ function applyPnlBackdrop(relPath) {
   img.src = url;
 }
 
+/** In-memory base64 for the selected PnL backdrop — avoids canvas taint on export */
+let __pnlBackdropBase64 = null;
+
+async function preloadBackdropBase64(relPath) {
+  if (!relPath) { __pnlBackdropBase64 = null; return; }
+  const url = pnlBackdropUrlFromRelPath(relPath);
+  if (!url) { __pnlBackdropBase64 = null; return; }
+  try {
+    const res = await fetch(url, { credentials: 'same-origin', cache: 'force-cache' });
+    if (!res.ok) throw new Error('not ok');
+    const blob = await res.blob();
+    if (!blob || !blob.size) throw new Error('empty');
+    const b64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject();
+      reader.readAsDataURL(blob);
+    });
+    __pnlBackdropBase64 = b64;
+    pcDbg('Backdrop preloaded as base64', relPath, b64.length, 'chars');
+  } catch (e) {
+    __pnlBackdropBase64 = null;
+    pcDbg('Backdrop preload failed (fetch unavailable? path?)', relPath, e.message || e);
+  }
+}
+
 async function initPnlCardBackgrounds() {
   const sel = document.getElementById('pnl-bg-select-sc');
   if (!sel) return;
@@ -2753,14 +1033,23 @@ async function initPnlCardBackgrounds() {
   }).join('');
   sel.innerHTML = optionsHtml;
   let saved = getPnlBgStoredEncoded();
+  try {
+    if (saved && !localStorage.getItem(PNL_BG_KEY) && localStorage.getItem(PNL_BG_LEGACY_KEY)) {
+      localStorage.setItem(PNL_BG_KEY, saved);
+    }
+  } catch (e) {}
   if (saved && [...sel.options].some(o => o.value === saved)) sel.value = saved;
   else { sel.value = ''; saved = ''; }
   sel.addEventListener('change', () => {
     const v = sel.value;
-    setPnlBgStoredEncoded(v);
-    applyPnlBackdrop(v ? decodeURIComponent(v) : '');
+    try { localStorage.setItem(PNL_BG_KEY, v); } catch (e) {}
+    const relPath = v ? decodeURIComponent(v) : '';
+    applyPnlBackdrop(relPath);
+    preloadBackdropBase64(relPath); // preload for canvas export
   });
-  applyPnlBackdrop(saved ? decodeURIComponent(saved) : '');
+  const initRelPath = saved ? decodeURIComponent(saved) : '';
+  applyPnlBackdrop(initRelPath);
+  if (initRelPath) preloadBackdropBase64(initRelPath); // preload saved selection on startup
 }
 
 function destroyChart(key) { if (chartInst[key]) { chartInst[key].destroy(); delete chartInst[key]; } }
@@ -3436,11 +1725,7 @@ function closeJournalCalSidebar() {
   const el = document.getElementById('cal-sidebar');
   if (!el || el.classList.contains('collapsed')) return;
   el.classList.add('collapsed');
-  if (IS_ELECTRON) {
-    window.journalDB.setSetting('profsCorner_calOpen', '0');
-  } else {
-    try { localStorage.setItem('profsCorner_calOpen', '0'); } catch {}
-  }
+  try { localStorage.setItem('profsCorner_calOpen', '0'); } catch {}
   const btn = document.getElementById('cal-sidebar-toggle-btn');
   const ch = el.querySelector('.cal-sidebar-chevron');
   if (btn) btn.setAttribute('aria-expanded', 'false');
@@ -3454,11 +1739,7 @@ function toggleCalendarSidebar() {
   if (!el) return;
   el.classList.toggle('collapsed');
   const open = !el.classList.contains('collapsed');
-  if (IS_ELECTRON) {
-    window.journalDB.setSetting('profsCorner_calOpen', open ? '1' : '0');
-  } else {
-    try { localStorage.setItem('profsCorner_calOpen', open ? '1' : '0'); } catch {}
-  }
+  try { localStorage.setItem('profsCorner_calOpen', open ? '1' : '0'); } catch {}
   const btn = document.getElementById('cal-sidebar-toggle-btn');
   const ch = el.querySelector('.cal-sidebar-chevron');
   if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -3484,6 +1765,8 @@ function setSeg(btn, group) {
   document.querySelectorAll(`.segbtn[data-sg="${group}"]`).forEach(b => {
     b.className = 'segbtn' + (b === btn ? ` on ${cc}` : '');
   });
+  // Feature 2: refresh log preview when outcome/direction changes on add page
+  if (['out','dir','sess','bias'].includes(group)) scheduleLogPreview();
 }
 
 // ─── IMAGE HANDLING ───────────────────────────
@@ -3529,7 +1812,7 @@ function setupDropZone(zoneId, ctx) {
 document.addEventListener('paste', e => {
   const tradePage = document.getElementById('add').classList.contains('active');
   const weekPage  = document.getElementById('weekly').classList.contains('active');
-  const editOpen = !!inlineEditId;
+  const editOpen  = !!inlineEditId; // FIX: edit-modal removed; inline edit tracked by inlineEditId
   if (!tradePage && !weekPage && !editOpen) return;
   const ctx = editOpen ? 'edit' : tradePage ? 'trade' : 'we';
   Array.from(e.clipboardData.items).forEach(item => {
@@ -3576,7 +1859,27 @@ function addTrade() {
 function setFilter(type, val, el) {
   filterState[type] = val;
   document.querySelectorAll(`.ftag[data-f="${type}"]`).forEach(b => b.className = 'ftag' + (b === el ? ' on' : ''));
+  // Feature 3: persist filter state across page switches
+  try { sessionStorage.setItem('pc_filter', JSON.stringify(filterState)); } catch {}
   renderTradesTable();
+}
+
+function restoreFilters() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('pc_filter') || '{}');
+    if (saved.outcome) filterState.outcome = saved.outcome;
+    if (saved.sess)    filterState.sess    = saved.sess;
+    // Restore active tags
+    ['outcome', 'sess'].forEach(type => {
+      document.querySelectorAll(`.ftag[data-f="${type}"]`).forEach(b => {
+        b.className = 'ftag' + (b.dataset.v === filterState[type] ? ' on' : '');
+      });
+    });
+    // Restore search text
+    const q = sessionStorage.getItem('pc_search') || '';
+    const ms = document.getElementById('model-search');
+    if (ms && q) ms.value = q;
+  } catch {}
 }
 
 function getFilteredTrades() {
@@ -3614,6 +1917,32 @@ function renderTradesTable() {
   const visible = applySortToTable(getFilteredTrades());
   const cnt = document.getElementById('fbar-count');
   if (cnt) cnt.textContent = visible.length !== trades.length ? `${visible.length} shown` : '';
+
+  // Feature 4: filtered stats strip
+  const isFiltered = filterState.outcome !== 'all' || filterState.sess !== 'all' ||
+    !!document.getElementById('model-search')?.value.trim();
+  const strip = document.getElementById('fstat-strip');
+  if (strip) {
+    if (isFiltered && visible.length > 0) {
+      const fs = calcStats(visible);
+      const wrCls = fs.wr >= 50 ? 'val-tertiary' : 'val-error';
+      const netCls = fs.net > 0 ? 'val-tertiary' : fs.net < 0 ? 'val-error' : 'val-default';
+      const el_wr = document.getElementById('fs-wr');
+      const el_net = document.getElementById('fs-net');
+      const el_pf = document.getElementById('fs-pf');
+      const el_ct = document.getElementById('fs-ct');
+      const el_avgw = document.getElementById('fs-avgw');
+      if (el_wr) { el_wr.textContent = fs.wr.toFixed(0) + '%'; el_wr.className = 'fstat-val ' + wrCls; }
+      if (el_net) { el_net.textContent = fmt(fs.net); el_net.className = 'fstat-val ' + netCls; }
+      if (el_pf) { el_pf.textContent = fs.pf !== null ? fs.pf.toFixed(2) : '∞'; }
+      if (el_ct) { el_ct.textContent = visible.length + (visible.length === 1 ? ' trade' : ' trades'); }
+      if (el_avgw) { el_avgw.textContent = fmtR(fs.avgW); }
+      strip.classList.add('visible');
+    } else {
+      strip.classList.remove('visible');
+    }
+  }
+
   if (!trades.length) { el.innerHTML = '<div class="empty"><span class="empty-ico">📋</span>No trades logged yet.</div>'; return; }
   if (!visible.length) { el.innerHTML = '<div class="empty"><span class="empty-ico">🔍</span>No trades match the current filters.</div>'; return; }
   const sortIcon = col => sortState.col === col ? (sortState.dir === 'desc' ? ' sorted-desc' : ' sorted-asc') : '';
@@ -4076,11 +2405,29 @@ async function downloadCard() {
   const wr = s.wr, pf = s.pf !== null ? s.pf.toFixed(2) : '∞';
   const best  = s.wins.length ? Math.max(...s.wins.map(t => t.rr)) : 0;
   const worst = s.losses.length ? Math.min(...s.losses.map(t => t.rr)) : 0;
+  // Use preloaded base64 if available (canvas-safe, no taint risk)
+  // Fall back to fetch approach only if base64 wasn't preloaded
   const pnlSel = document.getElementById('pnl-bg-select-sc');
   const encPathStored = pnlSel ? pnlSel.value : getPnlBgStoredEncoded();
   const relBackdrop = encPathStored ? decodeURIComponent(encPathStored) : '';
-  backdropSource = relBackdrop ? await loadBackdropForExport(relBackdrop) : null;
-  if (relBackdrop && !backdropSource) toast('Backdrop did not load for export (open via server.ps1 URL or fix manifest paths). ✗');
+
+  if (relBackdrop) {
+    if (__pnlBackdropBase64) {
+      // Best path: already in memory as base64, zero latency, no canvas taint
+      backdropSource = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(img.naturalWidth > 0 ? img : null);
+        img.onerror = () => resolve(null);
+        img.src = __pnlBackdropBase64;
+      });
+    } else {
+      // Not yet preloaded — try fetching now (server must be running)
+      backdropSource = await loadBackdropForExport(relBackdrop);
+    }
+    if (!backdropSource) {
+      toast('Backdrop image not available for export. Select the image again or run server.ps1. Saving without backdrop…');
+    }
+  }
 
   const paintExport = (canvasEl, includeBackdropLayer) => {
     const ctx = canvasEl.getContext('2d');
@@ -4403,6 +2750,19 @@ function removeModel(name) {
   );
 }
 
+// ─── SEED DATA (run once on first launch) ─────
+function seedTradeData() {
+  if (localStorage.getItem(SEED_KEY)) return; // already seeded
+  if (trades.length > 0) return; // user already has data
+
+  const seedTrades = [{"id":"1772524800000","date":"2026-03-03","pair":"PHAUSDT","dir":"Long","bias":"Aligned","model":"Orderflow","outcome":"Win","sess":"Other","rr":5,"exec":"Good setup aligned with 1h one time-framing move. Executed on 5m. Continuation setup played upon breakout from first leg up, entry supported by A.VWAP, POC, fib 0.236-0.382. Second entry taken upon order flow depiction, high aggression of sellers at top with price not accepting below showing absorption. CVD without divs, consistently increasing open interest.","emo":"Entered with low size first with big stops. Interpreted data as bearish and closed setup on BE, entered again immediately. Followed my plan - let fear took over - came to senses and entered again - made profit - greed took over effectively roundtripping most of the gains.","imgs":[]},{"id":"1772524860000","date":"2026-03-05","pair":"ROBOUSDT","dir":"Long","bias":"Partial","model":"AMT","outcome":"Loss","sess":"Other","rr":1,"exec":"Range mean reversion back into the Value area with CVD absorption confirmation. SL placement got me stopped.","emo":"Fearful, entered first then exited then entered again. Went out letting the setup play out.","imgs":[]},{"id":"1772524920000","date":"2026-03-09","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Win","sess":"Other","rr":3.5,"exec":"A breakout move of 5.5R but had to close later due to trail stops. Fib levels working good for HTF trend while I entered in continuation of LTF.","emo":"Fearful with the entry, went in only 0.5% risk. Khair, up 1% today.","imgs":[]},{"id":"1772524980000","date":"2026-03-13","pair":"BTCUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Win","sess":"Other","rr":2.5,"exec":"Executed acceptance above VAH of HTF range for continuation setup from .382 fib. Trade did 5R but trail stopped at 2.5R","emo":"Vague SL placement had me risk half","imgs":[]},{"id":"1772525040000","date":"2026-03-13","pair":"TRUMPUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Win","sess":"Other","rr":7,"exec":"Executed continuation from .382 fib after grinding PA got overcome by aggressive buyers pushing price up. VWAP tap conf. Fib extensions as target for 7R","emo":"Cool head, risked properly, quick move into profits and that is what I like.","imgs":[]},{"id":"1772525100000","date":"2026-03-14","pair":"HUMAUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Loss","sess":"Other","rr":1,"exec":"Tried to enter continuation long mid leg up. Premature entry without confirmation.","emo":"—","imgs":[]},{"id":"1772525160000","date":"2026-03-20","pair":"UNKNOWN","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Loss","sess":"Other","rr":0.5,"exec":"Executed a range breakout for continuation setup even though price action was exhaustive. Entered without solid confirmation as that would have ruined the RR","emo":"Closed early as soon as accepted back in value at half a R","imgs":[]},{"id":"1772525220000","date":"2026-03-23","pair":"CETUSUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Breakeven","sess":"Other","rr":0,"exec":"Executed at range POC and VWAP val, closed breakeven due to low volatility, not the type of reaction I like.","emo":"Not much, went all in with 0.5% for stops so it was just waiting for an hour before closing BE.","imgs":[]},{"id":"1772525280000","date":"2026-03-25","pair":"TAOUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Breakeven","sess":"Other","rr":0,"exec":"Executed continuation setup after the breakout of range. Closed BE after price did not give an immediate aggressive move.","emo":"Setup TP triggered after. Broke my rule of waiting for setup invalidation to hit to close the trade, let fear override.","imgs":[]},{"id":"1772525340000","date":"2026-03-26","pair":"OGNUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Loss","sess":"Other","rr":2,"exec":"Golden fib and VWAP scalp","emo":"All-inned with soft SL, took hit of -3%. ROUNDTRIPPED whole months gain.","imgs":[]},{"id":"1772525400000","date":"2026-03-26","pair":"STOUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Win","sess":"Other","rr":4,"exec":"HTF continuation, LTF range break","emo":"Got in, got out BE, got in again higher with half the risk. Definitely got affected by the prev loss","imgs":[]},{"id":"1772525460000","date":"2026-03-27","pair":"CFGUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Loss","sess":"Other","rr":1,"exec":"PrPOC, VWAP val and golden fib key level entry.","emo":"Nothing crazy, went in with 2 entries. Stopped after consolidation, BTC dumped wild tho","imgs":[]},{"id":"1772525520000","date":"2026-03-29","pair":"SOLUSDT","dir":"Long","bias":"Aligned","model":"AMT","outcome":"Loss","sess":"Other","rr":1,"exec":"Executed a swing reversal from VAL+OB and fib .5 extension. No vwap key levels present, rated the setup B+. Got wicked out due to news.","emo":"Nothing special, standard risk taken. Executed with confidence.","imgs":[]},{"id":"1772525580000","date":"2026-03-30","pair":"CHZUSDT","dir":"Long","bias":"Aligned","model":"Price Action","outcome":"Win","sess":"Other","rr":5,"exec":"Executed continuation trade from range breakout of .382 retrace bounce. Had to close at first TP","emo":"Went with half the risk because of Solana stoploss yesterday. A bit fearful.","imgs":[]},{"id":"1772525640000","date":"2026-03-31","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":3,"exec":"","emo":"","imgs":[]},{"id":"1772525700000","date":"2026-03-31","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":3,"exec":"","emo":"","imgs":[]},{"id":"1772525760000","date":"2026-03-31","pair":"ZBTUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Breakeven","sess":"Other","rr":1.5,"exec":"","emo":"","imgs":[]},{"id":"1772525820000","date":"2026-04-01","pair":"STOUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":4.5,"exec":"","emo":"","imgs":[]},{"id":"1772525880000","date":"2026-04-01","pair":"STOUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":10,"exec":"","emo":"","imgs":[]},{"id":"1772525940000","date":"2026-04-01","pair":"KERNELUSDT","dir":"Long","bias":"Aligned","model":"","outcome":"Win","sess":"Other","rr":7,"exec":"","emo":"","imgs":[]}];
+
+  trades = seedTrades;
+  saveTrades();
+  localStorage.setItem(SEED_KEY, '1');
+  console.log('Seed data loaded:', trades.length, 'trades');
+}
+
 // ─── LIGHTBOX ─────────────────────────────────
 function openLB(src) {
   const lb = document.getElementById('lb'), img = document.getElementById('lb-img');
@@ -4458,7 +2818,7 @@ function initObserver() {
 
 /** Console helper: prints localStorage keys used by this app (values truncated). */
 window.ProfsCornerAudit = function () {
-  const keys = [TK, WK, MK, 'profsCorner_focus', 'profsCorner_calOpen', 'profsCorner_debug', 'profsCorner_perf', PNL_BG_KEY, PNL_BG_LEGACY_KEY];
+  const keys = [TK, WK, MK, SEED_KEY, 'profsCorner_focus', 'profsCorner_calOpen', 'profsCorner_debug', 'profsCorner_perf', PNL_BG_KEY, PNL_BG_LEGACY_KEY];
   const snap = {};
   keys.forEach(k => {
     try {
@@ -4495,25 +2855,27 @@ async function init() {
   setupDropZone('edit-drop', 'edit');
   
   await loadData();
+  seedTradeData(); // load CSV trades on first run
   pcDbg('Loaded', { trades: trades.length, weeks: weeks.length, models: models.length, tradeStorageKey: TK, source: IS_ELECTRON ? 'electron' : 'localStorage' });
   renderModelManager();
   renderDashboard();
   await applyFocusModeFromStorage();
   
-  const cs = document.getElementById('cal-sidebar');
-  if (cs) {
-    const calOpen = IS_ELECTRON 
-      ? (await window.journalDB.getSetting('profsCorner_calOpen', '1') || '1')
-      : localStorage.getItem('profsCorner_calOpen');
-    if (calOpen === '0') {
-      cs.classList.add('collapsed');
-      const btn = document.getElementById('cal-sidebar-toggle-btn');
-      const ch = cs.querySelector('.cal-sidebar-chevron');
-      if (btn) btn.setAttribute('aria-expanded', 'false');
-      if (ch) ch.textContent = 'expand_more';
+  try {
+    const cs = document.getElementById('cal-sidebar');
+    if (cs) {
+      const calOpen = IS_ELECTRON 
+        ? (await window.journalDB.getSetting('profsCorner_calOpen', '1') || '1')
+        : localStorage.getItem('profsCorner_calOpen');
+      if (calOpen === '0') {
+        cs.classList.add('collapsed');
+        const btn = document.getElementById('cal-sidebar-toggle-btn');
+        const ch = cs.querySelector('.cal-sidebar-chevron');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+        if (ch) ch.textContent = 'expand_more';
+      }
     }
-  }
-  
+  } catch {}
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     const lb = document.getElementById('lb');
@@ -4543,6 +2905,3 @@ async function applyFocusModeFromStorage() {
 }
 
 init();
-</script>
-</body>
-</html>
